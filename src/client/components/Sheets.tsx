@@ -57,11 +57,15 @@ export function HelpSheet({ onClose, sourceLabel }: { onClose: () => void; sourc
         <ul className="legend">
           <li>
             <span className="sq exact" />
-            <b>+25</b> exactly the right spot
+            <b>+40</b> the most upvoted comment in first place
+          </li>
+          <li>
+            <span className="sq exact" />
+            <b>+20</b> any other comment in exactly the right spot
           </li>
           <li>
             <span className="sq close" />
-            <b>+10</b> one spot off
+            <b>+5</b> one spot off
           </li>
           <li>
             <span className="sq miss" />

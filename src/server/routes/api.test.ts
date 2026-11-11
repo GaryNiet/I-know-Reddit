@@ -259,13 +259,13 @@ test('full day: post, play, configure subreddits, replace, next day', async ({ h
     postId,
     body: { guess: ['t1_awwb', 't1_awwa', 't1_awwc', 't1_awwd'] },
   });
-  expect(late.body.result).toMatchObject({ points: 70, daily: false });
+  expect(late.body.result).toMatchObject({ points: 50, daily: false });
   expect(late.body.stats).toMatchObject({ played: 0, current: 0 });
 
   const archive = await call<ArchiveResponse>(headers, '/api/archive');
   expect(archive.body.entries.map((e) => [e.number, e.points])).toEqual([
     [2, null],
-    [1, 70],
+    [1, 50],
   ]);
   vi.useRealTimers();
 });

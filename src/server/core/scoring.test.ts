@@ -15,20 +15,22 @@ test('grade: exact, one-off and misses', () => {
     marks: ['exact', 'exact', 'exact', 'exact', 'exact'],
     points: 100,
   });
+  // Older 5-comment puzzles: 40 for the top, 15 for each other exact, 5 if one off.
   // Swap the top two: both are one spot off.
-  assert.deepEqual(grade(comments, ['b', 'd', 'a', 'c', 'e']).points, 80);
+  assert.deepEqual(grade(comments, ['b', 'd', 'a', 'c', 'e']).points, 5 + 5 + 15 * 3);
   // Fully reversed: only the middle is right.
   assert.deepEqual(grade(comments, ['e', 'c', 'a', 'b', 'd']), {
     marks: ['miss', 'miss', 'exact', 'miss', 'miss'],
-    points: 20,
+    points: 15,
   });
 });
 
-test('grade: 4-comment puzzles give 25 for spot on, 10 for one off', () => {
+test('grade: 4-comment puzzles give 40 for the top, 20 for others, 5 if one off', () => {
   const four = comments.slice(0, 4); // real order: d, b, a, c
   assert.equal(grade(four, ['d', 'b', 'a', 'c']).points, 100);
-  assert.equal(grade(four, ['b', 'd', 'a', 'c']).points, 70);
-  assert.equal(grade(four, ['c', 'a', 'b', 'd']).points, 20);
+  assert.equal(grade(four, ['d', 'a', 'b', 'c']).points, 40 + 5 + 5 + 20);
+  assert.equal(grade(four, ['b', 'd', 'a', 'c']).points, 5 + 5 + 20 + 20);
+  assert.equal(grade(four, ['c', 'a', 'b', 'd']).points, 5 + 5);
 });
 
 test('isValidGuess', () => {

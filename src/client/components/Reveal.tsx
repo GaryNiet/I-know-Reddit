@@ -133,7 +133,7 @@ export function ResultCard(p: CardProps) {
 }
 
 const TAG_LABEL: Record<Mark, string> = { exact: 'spot on', close: 'close', miss: '' };
-const tag = (mark: Mark, n: number) => `+${pointsFor(mark, n)} ${TAG_LABEL[mark]}`.trim();
+const tag = (mark: Mark, rank: number, n: number) => `+${pointsFor(mark, rank, n)} ${TAG_LABEL[mark]}`.trim();
 
 type ListProps = {
   reveal: RevealedComment[];
@@ -223,7 +223,7 @@ export function RevealList({ reveal, result, permalink, from }: ListProps) {
                         ? `You put it ${ordinal(picked)}, one off`
                         : `You put it ${ordinal(picked)}`}
                   </span>
-                  <span className="tag">{tag(mark, reveal.length)}</span>
+                  <span className="tag">{tag(mark, i, reveal.length)}</span>
                 </div>
               </div>
             </li>

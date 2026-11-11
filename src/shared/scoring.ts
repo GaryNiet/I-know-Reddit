@@ -4,13 +4,20 @@ type Mark = 'exact' | 'close' | 'miss';
 type ScoredComment = { id: string; score: number };
 type StoredResult = { points: number; daily: boolean };
 
+export const TOP_POINTS = 40;
+export const CLOSE_POINTS = 5;
+
 /**
- * Points per comment. A perfect game is always 100, so a spot-on comment is
- * worth 25 in a 4-comment puzzle (and 20 in older 5-comment ones).
+ * Points for one comment, by its real rank (0 = most upvoted).
+ * Spotting the top comment is worth 40; every other comment in the right spot
+ * shares the remaining 60 (20 each in a 4-comment puzzle, 15 in older
+ * 5-comment ones), so a perfect game is always 100. One spot off is 5.
  */
-export function pointsFor(mark: Mark, commentCount: number): number {
-  if (mark === 'exact') return Math.round(100 / Math.max(1, commentCount));
-  return mark === 'close' ? 10 : 0;
+export function pointsFor(mark: Mark, rank: number, commentCount: number): number {
+  if (mark === 'close') return CLOSE_POINTS;
+  if (mark !== 'exact') return 0;
+  if (rank === 0) return TOP_POINTS;
+  return Math.round((100 - TOP_POINTS) / Math.max(1, commentCount - 1));
 }
 
 /** Comment ids from most to least upvoted. */
@@ -28,7 +35,7 @@ export function grade(
     const d = at < 0 ? Infinity : Math.abs(at - i);
     return d === 0 ? 'exact' : d === 1 ? 'close' : 'miss';
   });
-  return { marks, points: marks.reduce((s, m) => s + pointsFor(m, marks.length), 0) };
+  return { marks, points: marks.reduce((s, m, i) => s + pointsFor(m, i, marks.length), 0) };
 }
 
 export function isValidGuess(

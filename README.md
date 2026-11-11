@@ -2,7 +2,7 @@
 
 A daily guessing game built as a [Devvit](https://developers.reddit.com) app, so it's played inside Reddit posts. Each day the app posts a new puzzle in your subreddit. Players see a popular image post plus four of its top-level comments, tap the comments in the order they think they were upvoted, and then see the real scores.
 
-- **Scoring:** +25 for each comment in exactly the right spot, +10 if it's one spot off. 100 is a perfect game.
+- **Scoring:** +40 for putting the most upvoted comment first, +20 for each other comment in exactly the right spot, +5 if a comment is one spot off. 100 is a perfect game.
 - **Streaks and stats** are stored per Reddit account, so they work on any device. Stats include games played, average, best streak, perfect games, the last 7 puzzles and a score distribution.
 - **Community results:** after playing you see how many people played and their average score.
 - **Scores stay on the server** until you lock in your answer, so you can't peek at them.
