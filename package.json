@@ -1,0 +1,11 @@
+{
+  "name": "i-know-reddit",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "generate": "node scripts/generate-puzzle.mjs",
+    "test": "node --test scripts/*.test.mjs",
+    "serve": "python3 -m http.server 8000 --directory docs"
+  },
+  "engines": { "node": ">=20" }
+}

@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 600">
+  <defs><linearGradient id="w" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#ffd9a8"/><stop offset="1" stop-color="#ffb38a"/></linearGradient></defs>
+  <rect width="800" height="600" fill="url(#w)"/>
+  <rect x="0" y="430" width="800" height="170" fill="#8a5a3c"/>
+  <rect x="120" y="380" width="560" height="110" rx="14" fill="#2b2f36"/>
+  <g fill="#454b55">
+    <rect x="145" y="400" width="40" height="28" rx="5"/><rect x="195" y="400" width="40" height="28" rx="5"/><rect x="245" y="400" width="40" height="28" rx="5"/><rect x="295" y="400" width="40" height="28" rx="5"/><rect x="465" y="400" width="40" height="28" rx="5"/><rect x="515" y="400" width="40" height="28" rx="5"/><rect x="565" y="400" width="40" height="28" rx="5"/><rect x="615" y="400" width="40" height="28" rx="5"/>
+    <rect x="145" y="440" width="40" height="28" rx="5"/><rect x="195" y="440" width="40" height="28" rx="5"/><rect x="565" y="440" width="40" height="28" rx="5"/><rect x="615" y="440" width="40" height="28" rx="5"/>
+  </g>
+  <ellipse cx="400" cy="390" rx="170" ry="70" fill="#f08c3c"/>
+  <path d="M250 380c-40-10-60 30-30 50 25 15 60 0 70-20" fill="#f08c3c"/>
+  <circle cx="520" cy="330" r="78" fill="#f08c3c"/>
+  <path d="M462 280l-8-70 50 45zM578 280l8-70-50 45z" fill="#f08c3c"/>
+  <path d="M470 270l-4-40 26 24zM570 270l4-40-26 24z" fill="#ffc7a8"/>
+  <path d="M488 330q12-14 24 0M528 330q12-14 24 0" stroke="#2b2f36" stroke-width="6" fill="none" stroke-linecap="round"/>
+  <path d="M512 352l8 8 8-8z" fill="#e0567a"/>
+  <path d="M520 360q-8 12-20 8M520 360q8 12 20 8" stroke="#2b2f36" stroke-width="4" fill="none" stroke-linecap="round"/>
+  <g stroke="#c96a26" stroke-width="10" stroke-linecap="round"><path d="M330 350q10 20 0 40M380 345q10 20 0 45"/></g>
+  <text x="400" y="560" text-anchor="middle" font-family="system-ui, sans-serif" font-size="26" fill="#fff" opacity=".85">practice puzzle illustration</text>
+</svg>

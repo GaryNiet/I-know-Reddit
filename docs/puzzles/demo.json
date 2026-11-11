@@ -1,0 +1,22 @@
+{
+  "number": 0,
+  "date": "practice",
+  "practice": true,
+  "post": {
+    "id": "practice",
+    "title": "Practice round: my cat has decided the keyboard is the warmest spot in the house",
+    "subreddit": "practice",
+    "author": "practice",
+    "score": 48200,
+    "numComments": 1300,
+    "permalink": "https://www.reddit.com/r/popular/",
+    "image": { "url": "puzzles/demo-cat.svg", "preview": "puzzles/demo-cat.svg", "width": 800, "height": 600 }
+  },
+  "comments": [
+    { "id": "p1", "body": "Your cat has filed a formal complaint about your typing speed.", "score": 3100, "author": "example_a" },
+    { "id": "p2", "body": "That is no longer your keyboard.", "score": 9800, "author": "example_b" },
+    { "id": "p3", "body": "Bold of you to assume you were working today.", "score": 1450, "author": "example_c" },
+    { "id": "p4", "body": "Zero productivity, maximum comfort.", "score": 620, "author": "example_d" },
+    { "id": "p5", "body": "Ctrl+Alt+Defeat.", "score": 5200, "author": "example_e" }
+  ]
+}

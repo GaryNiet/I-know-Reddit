@@ -1,0 +1,78 @@
+name: Daily puzzle & deploy
+
+on:
+  schedule:
+    # Shortly after midnight UTC: build today's puzzle from yesterday's r/popular.
+    - cron: '7 0 * * *'
+  workflow_dispatch:
+    inputs:
+      date:
+        description: 'Puzzle date (YYYY-MM-DD), defaults to today (UTC)'
+        required: false
+      force:
+        description: 'Regenerate even if the puzzle already exists'
+        type: boolean
+        default: false
+  push:
+    branches: [main]
+    paths: ['docs/**', '.github/workflows/daily.yml']
+
+permissions:
+  contents: write
+  pages: write
+  id-token: write
+
+concurrency:
+  group: daily-puzzle
+  cancel-in-progress: false
+
+jobs:
+  generate:
+    if: github.event_name != 'push'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Generate puzzle
+        env:
+          REDDIT_CLIENT_ID: ${{ secrets.REDDIT_CLIENT_ID }}
+          REDDIT_CLIENT_SECRET: ${{ secrets.REDDIT_CLIENT_SECRET }}
+          REDDIT_USER_AGENT: ${{ vars.REDDIT_USER_AGENT }}
+        run: |
+          args=()
+          [ -n "${{ inputs.date }}" ] && args+=(--date "${{ inputs.date }}")
+          [ "${{ inputs.force }}" = "true" ] && args+=(--force)
+          node scripts/generate-puzzle.mjs "${args[@]}"
+      - name: Commit puzzle
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add docs/puzzles
+          if git diff --cached --quiet; then
+            echo "No changes."
+          else
+            git commit -m "Add daily puzzle $(date -u +%F)"
+            git push origin HEAD:main
+          fi
+
+  deploy:
+    needs: generate
+    if: always() && needs.generate.result != 'failure'
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+      - uses: actions/configure-pages@v5
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: docs
+      - id: deployment
+        uses: actions/deploy-pages@v4
