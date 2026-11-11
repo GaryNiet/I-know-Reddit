@@ -193,7 +193,7 @@ async function submitPuzzlePost(p: StoredPuzzle): Promise<string> {
     entry: 'default',
     postData: { date: p.date, number: p.number },
     textFallback: {
-      text: `Daily puzzle #${p.number}: rank five comments from a popular post by upvotes. Open this post in the Reddit app or on new Reddit to play.`,
+      text: `Daily puzzle #${p.number}: rank four comments from a popular post by upvotes. Open this post in the Reddit app or on new Reddit to play.`,
     },
   });
   return post.id;

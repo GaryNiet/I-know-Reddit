@@ -1,8 +1,8 @@
 # Hiveminded
 
-A daily guessing game built as a [Devvit](https://developers.reddit.com) app, so it's played inside Reddit posts. Each day the app posts a new puzzle in your subreddit. Players see a popular image post plus five of its top-level comments, tap the comments in the order they think they were upvoted, and then see the real scores.
+A daily guessing game built as a [Devvit](https://developers.reddit.com) app, so it's played inside Reddit posts. Each day the app posts a new puzzle in your subreddit. Players see a popular image post plus four of its top-level comments, tap the comments in the order they think they were upvoted, and then see the real scores.
 
-- **Scoring:** +20 for each comment in exactly the right spot, +10 if it's one spot off. 100 is a perfect game.
+- **Scoring:** +25 for each comment in exactly the right spot, +10 if it's one spot off. 100 is a perfect game.
 - **Streaks and stats** are stored per Reddit account, so they work on any device. Stats include games played, average, best streak, perfect games, the last 7 puzzles and a score distribution.
 - **Community results:** after playing you see how many people played and their average score.
 - **Scores stay on the server** until you lock in your answer, so you can't peek at them.
@@ -30,7 +30,7 @@ About the autocomplete: Devvit's public API has no subreddit search, so suggesti
 1. Fetch the top posts of the day from the source.
 2. Keep image posts hosted on Reddit (single images or galleries) that aren't NSFW, spoilers, removed, or already used.
 3. For each candidate, load the top-level comments. Drop stickied, mod, bot, deleted, multi-line, link, quote and "Edit:" comments.
-4. Pick 5 comments, **preferring one-sentence comments of up to 110 characters**. If there aren't enough, allow two sentences up to 180 characters. Each picked comment must have at most 90% of the score of the one above it (and at least 5 fewer points) so the order can be guessed. The minimum is 10 upvotes.
+4. Pick 4 comments, **preferring one-sentence comments of up to 110 characters**. If there aren't enough, allow two sentences up to 180 characters. Each picked comment must have at most 90% of the score of the one above it (and at least 5 fewer points) so the order can be guessed. The minimum is 10 upvotes.
 5. If a post doesn't have enough suitable comments, move on to the next one.
 
 The scheduler does this every day at **00:05 UTC** and posts the puzzle. Moderators can also use the subreddit menu:

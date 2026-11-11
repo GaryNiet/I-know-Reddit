@@ -30,7 +30,7 @@ export function HelpSheet({ onClose, sourceLabel }: { onClose: () => void; sourc
     <Sheet title="How to play" onClose={onClose}>
       <div className="help">
         <p className="lede">
-          Every day you get one image post that did well on <b>{sourceLabel}</b>, plus five of its top-level
+          Every day you get one image post that did well on <b>{sourceLabel}</b>, plus four of its top-level
           comments.
         </p>
         <ol className="steps">
@@ -57,7 +57,7 @@ export function HelpSheet({ onClose, sourceLabel }: { onClose: () => void; sourc
         <ul className="legend">
           <li>
             <span className="sq exact" />
-            <b>+20</b> exactly the right spot
+            <b>+25</b> exactly the right spot
           </li>
           <li>
             <span className="sq close" />

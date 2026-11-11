@@ -82,7 +82,7 @@ test('pickComments prefers one-liners with clearly different scores', () => {
     c('7', 'Sixth.', 300),
     c('8', 'Tiny.', 3),
   ]);
-  assert.deepEqual(picked?.map((x) => x.id), ['1', '3', '4', '5', '7']);
+  assert.deepEqual(picked?.map((x) => x.id), ['1', '3', '4', '5']);
 });
 
 test('pickComments falls back to two-sentence comments, then gives up', () => {
@@ -93,8 +93,8 @@ test('pickComments falls back to two-sentence comments, then gives up', () => {
     c('4', 'Fourth. Also more.', 700),
     c('5', 'Fifth.', 300),
   ];
-  assert.equal(pickComments(kids)?.length, 5);
-  assert.equal(pickComments(kids.slice(0, 4)), null);
+  assert.equal(pickComments(kids)?.length, 4);
+  assert.equal(pickComments(kids.slice(0, 3)), null);
 });
 
 test('extractImage: Reddit-hosted images and galleries only', () => {

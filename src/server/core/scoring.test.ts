@@ -24,6 +24,13 @@ test('grade: exact, one-off and misses', () => {
   });
 });
 
+test('grade: 4-comment puzzles give 25 for spot on, 10 for one off', () => {
+  const four = comments.slice(0, 4); // real order: d, b, a, c
+  assert.equal(grade(four, ['d', 'b', 'a', 'c']).points, 100);
+  assert.equal(grade(four, ['b', 'd', 'a', 'c']).points, 70);
+  assert.equal(grade(four, ['c', 'a', 'b', 'd']).points, 20);
+});
+
 test('isValidGuess', () => {
   assert.equal(isValidGuess(comments, ['a', 'b', 'c', 'd', 'e']), true);
   assert.equal(isValidGuess(comments, ['a', 'a', 'c', 'd', 'e']), false);

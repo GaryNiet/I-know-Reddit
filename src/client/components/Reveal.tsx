@@ -1,7 +1,7 @@
 import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { navigateTo, showLoginPrompt } from '@devvit/web/client';
 import type { Community, Mark, Result, RevealedComment, Stats } from '../../shared/api';
-import { actualOrder, verdict } from '../../shared/scoring';
+import { actualOrder, pointsFor, verdict } from '../../shared/scoring';
 import { Chart, External, Replay, Share, Up } from '../icons';
 import { full, ordinal, reducedMotion } from '../util';
 
@@ -132,7 +132,8 @@ export function ResultCard(p: CardProps) {
   );
 }
 
-const TAG: Record<Mark, string> = { exact: '+20 spot on', close: '+10 close', miss: '+0' };
+const TAG_LABEL: Record<Mark, string> = { exact: 'spot on', close: 'close', miss: '' };
+const tag = (mark: Mark, n: number) => `+${pointsFor(mark, n)} ${TAG_LABEL[mark]}`.trim();
 
 type ListProps = {
   reveal: RevealedComment[];
@@ -200,7 +201,7 @@ export function RevealList({ reveal, result, permalink, from }: ListProps) {
                 </div>
                 <div className="rev-foot">
                   <span>You put it {ordinal(result.guess.indexOf(id) + 1)}</span>
-                  <span className="tag">{TAG[mark]}</span>
+                  <span className="tag">{tag(mark, reveal.length)}</span>
                 </div>
               </div>
             </li>

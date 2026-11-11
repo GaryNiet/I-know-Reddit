@@ -78,7 +78,7 @@ const GOOD = [
   comment('d', 'Not a single power tool in sight, respect.', 640),
   comment('e', 'Somewhere a hand plane is weeping with joy.', 310),
 ];
-const CORRECT = ['t1_a', 't1_b', 't1_c', 't1_d', 't1_e'];
+const CORRECT = ['t1_a', 't1_b', 't1_c', 't1_d'];
 
 const LONG = Array.from({ length: 12 }, (_, i) =>
   comment(`l${i}`, 'This one is long. It has many sentences. Far too many to count. Really.', 9000 - i * 500)
@@ -176,7 +176,7 @@ test('full day: post, play, configure subreddits, replace, next day', async ({ h
   expect(init.body.puzzle?.comments.map((c) => c.id).sort()).toEqual([...CORRECT].sort());
 
   // 3. Bad guesses are rejected; a perfect guess scores 100 and starts a streak.
-  const bad = await call(headers, '/api/submit', { method: 'POST', postId, body: { guess: CORRECT.slice(0, 4) } });
+  const bad = await call(headers, '/api/submit', { method: 'POST', postId, body: { guess: CORRECT.slice(0, 3) } });
   expect(bad.status).toBe(400);
   const sub = await call<SubmitResponse>(headers, '/api/submit', { method: 'POST', postId, body: { guess: CORRECT } });
   expect(sub.status).toBe(200);
@@ -195,7 +195,7 @@ test('full day: post, play, configure subreddits, replace, next day', async ({ h
   expect(again.body.result.points).toBe(100);
   const reloaded = await call<InitResponse>(headers, '/api/init', { postId });
   expect(reloaded.body.result?.points).toBe(100);
-  expect(reloaded.body.reveal).toHaveLength(5);
+  expect(reloaded.body.reveal).toHaveLength(4);
 
   // 4. Moderator-only endpoints.
   expect((await call(headers, '/api/subreddits/search?q=pic')).status).toBe(403);
@@ -257,15 +257,15 @@ test('full day: post, play, configure subreddits, replace, next day', async ({ h
   const late = await call<SubmitResponse>(headers, '/api/submit', {
     method: 'POST',
     postId,
-    body: { guess: ['t1_awwb', 't1_awwa', 't1_awwc', 't1_awwd', 't1_awwe'] },
+    body: { guess: ['t1_awwb', 't1_awwa', 't1_awwc', 't1_awwd'] },
   });
-  expect(late.body.result).toMatchObject({ points: 80, daily: false });
+  expect(late.body.result).toMatchObject({ points: 70, daily: false });
   expect(late.body.stats).toMatchObject({ played: 0, current: 0 });
 
   const archive = await call<ArchiveResponse>(headers, '/api/archive');
   expect(archive.body.entries.map((e) => [e.number, e.points])).toEqual([
     [2, null],
-    [1, 80],
+    [1, 70],
   ]);
   vi.useRealTimers();
 });
@@ -308,7 +308,7 @@ test('play again: a different post, nothing saved', async ({ headers }) => {
   const first = await call<PracticeResponse>(headers, '/api/practice', { method: 'POST', body: { exclude: [] } });
   expect(first.status).toBe(200);
   expect(first.body.post.id).toBe('t3_next');
-  expect(first.body.comments.map((c) => c.score).sort((a, b) => b - a)).toEqual([5400, 3100, 1200, 640, 310]);
+  expect(first.body.comments.map((c) => c.score).sort((a, b) => b - a)).toEqual([5400, 3100, 1200, 640]);
 
   // Posts already practiced are skipped; with none left it says so.
   const none = await call<ErrorResponse>(headers, '/api/practice', { method: 'POST', body: { exclude: ['t3_next'] } });

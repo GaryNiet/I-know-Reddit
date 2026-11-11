@@ -1,4 +1,4 @@
-// Picks a post and five of its comments for a puzzle. Pure functions over a
+// Picks a post and four of its comments for a puzzle. Pure functions over a
 // plain data shape (see reddit-source.ts for the Devvit adapter), with no
 // imports so the unit tests run with plain Node.
 
@@ -41,7 +41,7 @@ export type Candidate = {
 };
 
 export const CONFIG = {
-  commentsPerPuzzle: 5,
+  commentsPerPuzzle: 4,
   minCommentScore: 10,
   /** Each comment must have at most this share of the one above it... */
   maxScoreRatio: 0.9,
