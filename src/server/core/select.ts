@@ -37,7 +37,6 @@ export type Candidate = {
   body: string;
   score: number;
   author: string;
-  tier: 1 | 2;
 };
 
 export const CONFIG = {
@@ -47,8 +46,8 @@ export const CONFIG = {
   maxScoreRatio: 0.9,
   /** ...and at least this many fewer points, so the order is guessable. */
   minScoreGap: 5,
-  shortMaxChars: 110, // tier 1: a one-liner
-  mediumMaxChars: 180, // tier 2: up to two sentences
+  /** Longest comment allowed, in characters (after cleaning up markdown). */
+  maxCommentChars: 200,
 };
 
 // ------------------------------------------------------------ posts
@@ -117,15 +116,6 @@ export function cleanBody(raw: string): string {
     .trim();
 }
 
-export function sentenceCount(text: string): number {
-  const parts = text
-    .replace(/\b(Mr|Mrs|Ms|Dr|St|vs|etc|e\.g|i\.e)\./gi, '$1')
-    .replace(/\.{2,}/g, '…')
-    .split(/(?<=[.!?])\s+(?=\S)/)
-    .filter((s) => /[\p{L}\p{N}]/u.test(s));
-  return Math.max(1, parts.length);
-}
-
 export function commentCandidate(c: RawComment): Candidate | null {
   if (!c.isTopLevel || c.stickied || c.removed) return null;
   if (c.distinguishedBy === 'moderator' || c.distinguishedBy === 'admin') return null;
@@ -138,12 +128,8 @@ export function commentCandidate(c: RawComment): Candidate | null {
   if (/\b(u|r)\/\w+/i.test(raw)) return null; // mentions
   const body = cleanBody(raw);
   if (body.length < 2 || !/[\p{L}\p{N}\p{Extended_Pictographic}]/u.test(body)) return null;
-  const sentences = sentenceCount(body);
-  let tier: 1 | 2 | null = null;
-  if (sentences === 1 && body.length <= CONFIG.shortMaxChars) tier = 1;
-  else if (sentences <= 2 && body.length <= CONFIG.mediumMaxChars) tier = 2;
-  if (!tier) return null;
-  return { id: c.id, author: c.authorName, body, score: c.score, tier };
+  if (body.length > CONFIG.maxCommentChars) return null;
+  return { id: c.id, author: c.authorName, body, score: c.score };
 }
 
 function greedyPick(pool: Candidate[], n: number): Candidate[] | null {
@@ -163,13 +149,13 @@ function greedyPick(pool: Candidate[], n: number): Candidate[] | null {
   return null;
 }
 
-/** Prefer a puzzle of pure one-liners; fall back to short two-liners. */
+/** The top comments (up to the character limit) with clearly different scores. */
 export function pickComments(
   comments: readonly RawComment[],
   n = CONFIG.commentsPerPuzzle
 ): Candidate[] | null {
   const cands = comments.map(commentCandidate).filter((c): c is Candidate => c !== null);
-  return greedyPick(cands.filter((c) => c.tier === 1), n) ?? greedyPick(cands, n);
+  return greedyPick(cands, n);
 }
 
 // ------------------------------------------------------------ misc

@@ -147,7 +147,7 @@ export async function buildPuzzle(date: string, sources: SourceConfig, opts: Bui
   for (const post of posts.slice(0, MAX_POSTS_TO_TRY)) {
     const comments = pickComments(await fetchTopLevelComments(post.id));
     if (!comments) {
-      console.log(`  skip r/${post.subredditName} "${post.title.slice(0, 50)}": not enough short comments`);
+      console.log(`  skip r/${post.subredditName} "${post.title.slice(0, 50)}": not enough suitable comments`);
       continue;
     }
     const image = extractImage(post);
@@ -177,7 +177,7 @@ export async function buildPuzzle(date: string, sources: SourceConfig, opts: Bui
   }
   const where = sources.mode === 'custom' ? `r/${sources.subreddits.join(', r/')}` : 'r/popular';
   throw new Error(
-    `No image post in ${where} had ${CONFIG.commentsPerPuzzle} short comments with clearly different scores.`
+    `No image post in ${where} had ${CONFIG.commentsPerPuzzle} comments of up to ${CONFIG.maxCommentChars} characters with clearly different scores.`
   );
 }
 

@@ -81,7 +81,7 @@ const GOOD = [
 const CORRECT = ['t1_a', 't1_b', 't1_c', 't1_d'];
 
 const LONG = Array.from({ length: 12 }, (_, i) =>
-  comment(`l${i}`, 'This one is long. It has many sentences. Far too many to count. Really.', 9000 - i * 500)
+  comment(`l${i}`, `${'This one is far too long to fit. '.repeat(7)}`, 9000 - i * 500)
 );
 
 const COMMENTS: Record<string, RawComment[]> = {

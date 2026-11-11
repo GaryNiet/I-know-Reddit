@@ -8,7 +8,6 @@ import {
   normalizeSubredditName,
   pickComments,
   seededShuffle,
-  sentenceCount,
   type RawComment,
   type RawPost,
 } from './select';
@@ -44,14 +43,6 @@ const post = (extra: Partial<RawPost> = {}): RawPost => ({
   ...extra,
 });
 
-test('sentenceCount', () => {
-  assert.equal(sentenceCount('Just one sentence here.'), 1);
-  assert.equal(sentenceCount('No punctuation at all'), 1);
-  assert.equal(sentenceCount('Wait... what?'), 1);
-  assert.equal(sentenceCount('First one. Second one!'), 2);
-  assert.equal(sentenceCount('Dr. Who is great.'), 1);
-});
-
 test('cleanBody strips markdown and entities', () => {
   assert.equal(cleanBody('This is **bold** and *italic*'), 'This is bold and italic');
   assert.equal(cleanBody('~~nope~~ yes &amp; no'), 'nope yes & no');
@@ -66,35 +57,29 @@ test('commentCandidate filters junk', () => {
   assert.equal(commentCandidate(c('a', 'line one\n\nline two', 10)), null);
   assert.equal(commentCandidate(c('a', 'Edit: thanks for the award', 10)), null);
   assert.equal(commentCandidate(c('a', 'Hi', 10, { authorName: 'AutoModerator' })), null);
-  assert.equal(commentCandidate(c('a', 'Short and sweet.', 10))?.tier, 1);
-  assert.equal(commentCandidate(c('a', 'Sentence one is here. Sentence two is here.', 10))?.tier, 2);
-  assert.equal(commentCandidate(c('a', 'x'.repeat(300), 10)), null);
+  assert.equal(commentCandidate(c('a', 'Short and sweet.', 10))?.body, 'Short and sweet.');
+  // Any number of sentences, up to 200 characters.
+  assert.equal(commentCandidate(c('a', 'One. Two. Three. Four.', 10))?.body, 'One. Two. Three. Four.');
+  assert.equal(commentCandidate(c('a', 'x'.repeat(200), 10))?.body.length, 200);
+  assert.equal(commentCandidate(c('a', 'x'.repeat(201), 10)), null);
 });
 
-test('pickComments prefers one-liners with clearly different scores', () => {
+test('pickComments takes the top comments with clearly different scores', () => {
   const picked = pickComments([
     c('1', 'Top one.', 5000),
     c('2', 'Almost tied with top.', 4900),
-    c('3', 'Third.', 3000),
-    c('4', 'Fourth thing.', 1500),
-    c('5', 'Fifth thing.', 700),
-    c('6', 'Two sentences. Medium length.', 650),
-    c('7', 'Sixth.', 300),
-    c('8', 'Tiny.', 3),
+    c('3', 'Two sentences. Still fine.', 3000),
+    c('4', `${'Way too long. '.repeat(15)}`, 2000),
+    c('5', 'Fourth thing.', 1500),
+    c('6', 'Fifth thing.', 700),
+    c('7', 'Tiny.', 3),
   ]);
-  assert.deepEqual(picked?.map((x) => x.id), ['1', '3', '4', '5']);
+  assert.deepEqual(picked?.map((x) => x.id), ['1', '3', '5', '6']);
 });
 
-test('pickComments falls back to two-sentence comments, then gives up', () => {
-  const kids = [
-    c('1', 'Top one.', 5000),
-    c('2', 'Second. With more.', 3000),
-    c('3', 'Third.', 1500),
-    c('4', 'Fourth. Also more.', 700),
-    c('5', 'Fifth.', 300),
-  ];
-  assert.equal(pickComments(kids)?.length, 4);
-  assert.equal(pickComments(kids.slice(0, 3)), null);
+test('pickComments gives up without enough suitable comments', () => {
+  const kids = [c('1', 'Top one.', 5000), c('2', 'Second.', 3000), c('3', 'Third.', 1500), c('4', 'Too low.', 3)];
+  assert.equal(pickComments(kids), null);
 });
 
 test('extractImage: Reddit-hosted images and galleries only', () => {
