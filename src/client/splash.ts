@@ -38,7 +38,7 @@ async function load() {
     }
     if (data.result) {
       setText('question', `You scored ${data.result.points} / 100`);
-      setText('play', 'See how the thread ranked');
+      setText('play', 'Guess which comments made it to the top');
     } else if (!data.isLatest) {
       setText('play', `Play puzzle #${p.number}`);
     }
