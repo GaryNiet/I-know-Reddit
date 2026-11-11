@@ -54,3 +54,8 @@ export const Search = () => (
     <path d="M20 20l-3.5-3.5" />
   </svg>
 );
+export const Replay = () => (
+  <svg {...P}>
+    <path d="M4 12a8 8 0 1 0 2.4-5.7M4 4v4h4" />
+  </svg>
+);

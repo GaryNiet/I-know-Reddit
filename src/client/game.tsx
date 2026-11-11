@@ -4,7 +4,8 @@ import './game.css';
 import { StrictMode, useCallback, useEffect, useState } from 'react';
 import { createRoot } from 'react-dom/client';
 import { context, navigateTo, showToast } from '@devvit/web/client';
-import type { InitResponse, SourceConfig, SubmitResponse } from '../shared/api';
+import type { InitResponse, Result, SourceConfig, SubmitResponse } from '../shared/api';
+import { grade } from '../shared/scoring';
 import { Lightbox, PostCard } from './components/Post';
 import { Picker } from './components/Picker';
 import { ResultCard, RevealList } from './components/Reveal';
@@ -49,11 +50,16 @@ export function App() {
   const [zoom, setZoom] = useState<string | null>(null);
   const [fromRects, setFromRects] = useState<Map<string, DOMRect> | null>(null);
   const [shareText, setShareText] = useState('');
+  // Replays (for testing): graded on this device, never sent to the server.
+  const [replaying, setReplaying] = useState(false);
+  const [practice, setPractice] = useState<Result | null>(null);
 
   const apply = useCallback((d: InitResponse) => {
     setError(null);
     setData(d);
     setFromRects(null);
+    setReplaying(false);
+    setPractice(null);
     // Restore a half-finished ranking.
     const ids = new Set(d.puzzle?.comments.map((c) => c.id) ?? []);
     const saved = d.puzzle && !d.result ? readLocal(progressKey(d.puzzle.date)) : null;
@@ -84,9 +90,9 @@ export function App() {
   const setGuess = useCallback(
     (g: string[]) => {
       setGuessState(g);
-      if (data?.puzzle) writeLocal(progressKey(data.puzzle.date), JSON.stringify(g));
+      if (data?.puzzle && !replaying) writeLocal(progressKey(data.puzzle.date), JSON.stringify(g));
     },
-    [data]
+    [data, replaying]
   );
 
   const closeSheet = useCallback(() => {
@@ -94,21 +100,34 @@ export function App() {
     setSheet(null);
   }, [sheet]);
 
+  const scrollToResult = () =>
+    requestAnimationFrame(() => document.querySelector('.result')?.scrollIntoView({ behavior: 'smooth', block: 'start' }));
+
   const submit = async () => {
     if (!data?.puzzle) return;
-    setSubmitting(true);
     // Remember where each card is so they can slide to their real spot.
     const rects = new Map<string, DOMRect>();
     for (const el of document.querySelectorAll<HTMLElement>('.comment[data-id]')) {
       rects.set(el.dataset.id ?? '', el.getBoundingClientRect());
     }
+    if (replaying && data.reveal) {
+      // Replay: the scores are already known, so grade locally and save nothing.
+      const { marks, points } = grade(data.reveal, guess);
+      vibrate([10, 40, 10]);
+      setFromRects(rects);
+      setPractice({ guess, marks, points, at: Date.now(), daily: false });
+      setReplaying(false);
+      scrollToResult();
+      return;
+    }
+    setSubmitting(true);
     try {
       const r = await api<SubmitResponse>('/submit', { method: 'POST', body: { guess } });
       vibrate([10, 40, 10]);
       writeLocal(progressKey(data.puzzle.date), null);
       setFromRects(rects);
       setData({ ...data, result: r.result, reveal: r.reveal, stats: r.stats ?? data.stats, community: r.community });
-      requestAnimationFrame(() => document.querySelector('.result')?.scrollIntoView({ behavior: 'smooth', block: 'start' }));
+      scrollToResult();
     } catch (e) {
       showToast(e instanceof Error ? e.message : 'Something went wrong, please try again.');
     } finally {
@@ -116,11 +135,19 @@ export function App() {
     }
   };
 
+  const playAgain = () => {
+    setReplaying(true);
+    setPractice(null);
+    setFromRects(null);
+    setGuessState([]);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
   const share = async () => {
     if (!data?.puzzle || !data.result) return;
     const sq = { exact: '🟩', close: '🟨', miss: '⬜' } as const;
     const lines = [
-      `I Know Reddit #${data.puzzle.number}`,
+      `Hiveminded #${data.puzzle.number}`,
       `${data.result.marks.map((m) => sq[m]).join('')} ${data.result.points}/100`,
     ];
     if (data.isLatest && data.stats && data.stats.current > 1) lines.push(`🔥 ${data.stats.current} day streak`);
@@ -183,11 +210,11 @@ export function App() {
           <div className="brand">
             <span className="brand-mark" aria-hidden="true">
               <svg viewBox="0 0 24 24">
-                <path d="M12 4l7 8h-4.2v8H9.2v-8H5z" />
+                <path d="M12 3.5l7.4 4.25v8.5L12 20.5l-7.4-4.25v-8.5z" />
               </svg>
             </span>
             <span className="brand-text">
-              I Know <b>Reddit</b>
+              Hive<b>minded</b>
             </span>
           </div>
           <div className="topbar-right">
@@ -249,12 +276,21 @@ export function App() {
               </span>
             </div>
 
-            <PostCard post={p.post} onZoom={setZoom} />
+            {replaying && (
+              <div className="banner">
+                <span>🔁</span>
+                <span>Practice round. This play isn't saved and doesn't count toward your score or streak.</span>
+              </div>
+            )}
 
-            {data.result && data.reveal ? (
+            <PostCard post={p.post} revealed={!!data.result && !replaying} onZoom={setZoom} />
+
+            {data.result && data.reveal && !replaying ? (
               <>
                 <ResultCard
-                  result={data.result}
+                  key={practice ? `practice-${practice.at}` : 'real'}
+                  result={practice ?? data.result}
+                  practice={practice !== null}
                   stats={data.stats}
                   community={data.community}
                   loggedIn={data.username !== null}
@@ -263,8 +299,15 @@ export function App() {
                   animate={fromRects !== null}
                   onShare={() => void share()}
                   onStats={() => setSheet('stats')}
+                  onPlayAgain={playAgain}
                 />
-                <RevealList reveal={data.reveal} result={data.result} permalink={p.post.permalink} from={fromRects} />
+                <RevealList
+                  key={practice ? `practice-${practice.at}` : 'real'}
+                  reveal={data.reveal}
+                  result={practice ?? data.result}
+                  permalink={p.post.permalink}
+                  from={fromRects}
+                />
               </>
             ) : (
               <Picker

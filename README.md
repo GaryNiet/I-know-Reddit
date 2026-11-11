@@ -1,4 +1,4 @@
-# I Know Reddit
+# Hiveminded
 
 A daily guessing game built as a [Devvit](https://developers.reddit.com) app, so it's played inside Reddit posts. Each day the app posts a new puzzle in your subreddit. Players see a popular image post plus five of its top-level comments, tap the comments in the order they think they were upvoted, and then see the real scores.
 
@@ -33,8 +33,8 @@ About the autocomplete: Devvit's public API has no subreddit search, so suggesti
 5. If a post doesn't have enough suitable comments, move on to the next one.
 
 The scheduler does this every day at **00:05 UTC** and posts the puzzle. Moderators can also use the subreddit menu:
-- **I Know Reddit: post today's puzzle** builds and posts today's puzzle if it hasn't been posted yet.
-- **I Know Reddit: replace today's puzzle** picks a different post for today.
+- **Hiveminded: post today's puzzle** builds and posts today's puzzle if it hasn't been posted yet.
+- **Hiveminded: replace today's puzzle** picks a different post for today.
 
 Installing the app posts the first puzzle right away.
 

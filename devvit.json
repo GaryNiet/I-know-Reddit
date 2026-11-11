@@ -31,14 +31,14 @@
   "menu": {
     "items": [
       {
-        "label": "I Know Reddit: post today's puzzle",
+        "label": "Hiveminded: post today's puzzle",
         "description": "Builds today's puzzle now if needed and posts it",
         "location": "subreddit",
         "forUserType": "moderator",
         "endpoint": "/internal/menu/post-today"
       },
       {
-        "label": "I Know Reddit: replace today's puzzle",
+        "label": "Hiveminded: replace today's puzzle",
         "description": "Picks a different post for today, e.g. after changing subreddits",
         "location": "subreddit",
         "forUserType": "moderator",

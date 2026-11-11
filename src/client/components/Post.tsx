@@ -1,26 +1,21 @@
 import { useState } from 'react';
 import { navigateTo } from '@devvit/web/client';
 import type { PuzzlePost } from '../../shared/api';
-import { CommentIcon, Up } from '../icons';
-import { compact, full } from '../util';
 
-export function PostCard({ post, onZoom }: { post: PuzzlePost; onZoom: (url: string) => void }) {
+type Props = {
+  post: PuzzlePost;
+  /** Show the subreddit only once the player has answered, so it can't hint at the ranking. */
+  revealed: boolean;
+  onZoom: (url: string) => void;
+};
+
+export function PostCard({ post, revealed, onZoom }: Props) {
   const [failed, setFailed] = useState(false);
   const img = post.image;
   const ratio = img.width && img.height ? `${img.width} / ${img.height}` : undefined;
 
   return (
     <article className="post">
-      <div className="post-head">
-        <div className="post-sub">
-          <span className="sub-icon" aria-hidden="true">
-            r/
-          </span>
-          <b>r/{post.subreddit}</b>
-          <span>· {new Date(post.createdAt).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}</span>
-        </div>
-        <h1 className="post-title">{post.title}</h1>
-      </div>
       <button
         type="button"
         className="post-media"
@@ -55,15 +50,9 @@ export function PostCard({ post, onZoom }: { post: PuzzlePost; onZoom: (url: str
           </>
         )}
       </button>
-      <div className="post-foot">
-        <span title={`${full(post.score)} upvotes`}>
-          <Up />
-          {compact(post.score)}
-        </span>
-        <span title={`${full(post.numComments)} comments`}>
-          <CommentIcon />
-          {compact(post.numComments)}
-        </span>
+      <div className="post-caption">
+        <h1 className="post-title">{post.title}</h1>
+        {revealed && <span className="post-sub">r/{post.subreddit}</span>}
       </div>
     </article>
   );

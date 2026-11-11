@@ -166,7 +166,7 @@ async function submitPuzzlePost(p: StoredPuzzle): Promise<string> {
   });
   const post = await reddit.submitCustomPost({
     subredditName: context.subredditName,
-    title: `I Know Reddit #${p.number} (${pretty}): which comment got the most upvotes?`,
+    title: `Hiveminded #${p.number} (${pretty}): which comment got the most upvotes?`,
     entry: 'default',
     postData: { date: p.date, number: p.number },
     textFallback: {

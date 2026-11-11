@@ -2,7 +2,7 @@ import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { navigateTo, showLoginPrompt } from '@devvit/web/client';
 import type { Community, Mark, Result, RevealedComment, Stats } from '../../shared/api';
 import { actualOrder, verdict } from '../../shared/scoring';
-import { Chart, External, Share, Up } from '../icons';
+import { Chart, External, Replay, Share, Up } from '../icons';
 import { full, ordinal, reducedMotion } from '../util';
 
 function CountUp({ to, ms, format = String }: { to: number; ms: number; format?: (n: number) => string }) {
@@ -50,14 +50,18 @@ type CardProps = {
   isLatest: boolean;
   nextPuzzleAt: number;
   animate: boolean;
+  /** A replay: graded on this device only, never saved or counted. */
+  practice: boolean;
   onShare: () => void;
   onStats: () => void;
+  onPlayAgain: () => void;
 };
 
 export function ResultCard(p: CardProps) {
   const r = p.result;
   return (
     <section className="result" aria-label="Your result">
+      {p.practice && <div className="practice-tag">Practice round · not counted</div>}
       <div className="verdict">{verdict(r.points)}</div>
       <div className="points">
         <CountUp to={r.points} ms={p.animate && !reducedMotion() ? 900 : 0} />
@@ -68,7 +72,7 @@ export function ResultCard(p: CardProps) {
           <i key={i} className={`${m}-bg`} style={{ animationDelay: `${i * 90}ms` }} />
         ))}
       </div>
-      {p.stats && (
+      {p.stats && !p.practice && (
         <div className="result-stats">
           <div>
             <b>🔥 {p.stats.current}</b>
@@ -84,15 +88,20 @@ export function ResultCard(p: CardProps) {
           </div>
         </div>
       )}
-      <div className="row">
-        <button type="button" className="btn primary" onClick={p.onShare}>
-          <Share /> Share
-        </button>
-        <button type="button" className="btn secondary" onClick={p.onStats}>
-          <Chart /> Stats
-        </button>
-      </div>
-      {p.community && p.community.plays > 1 && (
+      {!p.practice && (
+        <div className="row">
+          <button type="button" className="btn primary" onClick={p.onShare}>
+            <Share /> Share
+          </button>
+          <button type="button" className="btn secondary" onClick={p.onStats}>
+            <Chart /> Stats
+          </button>
+        </div>
+      )}
+      <button type="button" className="btn secondary block play-again" onClick={p.onPlayAgain}>
+        <Replay /> Play again
+      </button>
+      {!p.practice && p.community && p.community.plays > 1 && (
         <div className="community">
           <b>{full(p.community.plays)}</b> players here · average <b>{p.community.avg}</b>
           {p.community.perfect ? (
@@ -103,7 +112,7 @@ export function ResultCard(p: CardProps) {
           ) : null}
         </div>
       )}
-      {!p.loggedIn && (
+      {!p.practice && !p.loggedIn && (
         <div className="login-nudge">
           <button type="button" className="link-btn" onClick={() => showLoginPrompt()}>
             Log in
@@ -111,7 +120,7 @@ export function ResultCard(p: CardProps) {
           to keep a streak and save your stats.
         </div>
       )}
-      {p.isLatest && <Countdown at={p.nextPuzzleAt} />}
+      {!p.practice && p.isLatest && <Countdown at={p.nextPuzzleAt} />}
     </section>
   );
 }

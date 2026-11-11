@@ -34,10 +34,14 @@ async function load() {
       img.referrerPolicy = 'no-referrer';
       img.decoding = 'async';
       img.onerror = () => img.remove();
-      const label = document.createElement('span');
-      label.className = 'splash-sub-label';
-      label.textContent = `r/${p.post.subreddit}`;
-      media.replaceChildren(img, label);
+      media.replaceChildren(img);
+      // The subreddit is a hint, so only show it once the puzzle has been played.
+      if (data.result) {
+        const label = document.createElement('span');
+        label.className = 'splash-sub-label';
+        label.textContent = `r/${p.post.subreddit}`;
+        media.append(label);
+      }
     }
     if (data.result) {
       setText('question', `You scored ${data.result.points} / 100`);

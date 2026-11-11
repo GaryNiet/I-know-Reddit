@@ -204,7 +204,7 @@ export function ArchiveSheet({
                   <span className="num">#{e.number}</span>
                   <span className="info">
                     <b>{i === 0 ? 'Latest' : prettyDate(e.date, { weekday: 'short', month: 'short', day: 'numeric' })}</b>
-                    <span>r/{e.subreddit}</span>
+                    <span>{e.points !== null ? `r/${e.subreddit}` : 'Not played yet'}</span>
                   </span>
                   {e.points !== null ? <span className="res">{e.points}</span> : <span className="play">Play →</span>}
                 </button>
