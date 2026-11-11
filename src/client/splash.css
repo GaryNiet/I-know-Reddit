@@ -8,10 +8,6 @@ body { overflow: hidden; }
   background: radial-gradient(circle at 30% 20%, var(--accent-soft), var(--surface-2));
 }
 .splash-media img { width: 100%; height: 100%; object-fit: cover; display: block; }
-.splash-sub-label {
-  position: absolute; left: 10px; bottom: 10px; background: rgba(0, 0, 0, .6); color: #fff;
-  font-size: 12px; font-weight: 700; padding: 3px 9px; border-radius: 999px;
-}
 .splash-bottom { display: grid; gap: 8px; text-align: center; }
 .splash-q { margin: 0; font-weight: 800; font-size: 17px; line-height: 1.25; }
 .splash-sub { margin: 0; font-size: 13px; color: var(--muted); font-weight: 600; min-height: 1em; }
