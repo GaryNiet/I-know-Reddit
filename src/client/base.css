@@ -81,6 +81,7 @@ svg { display: block; }
 .btn.primary { background: var(--accent); color: var(--accent-ink); text-shadow: 0 2px 0 rgba(0, 0, 0, .25); }
 .btn.primary:disabled { background: var(--surface-2); color: var(--muted); text-shadow: none; box-shadow: var(--pop-sm); cursor: default; transform: none; }
 .btn.secondary { background: var(--surface); color: var(--text); }
+.btn.secondary:disabled { color: var(--muted); cursor: progress; transform: none; }
 .btn svg { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width: 2.6; stroke-linecap: round; stroke-linejoin: round; }
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation: none !important; transition: none !important; }

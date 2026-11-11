@@ -8,6 +8,7 @@ A daily guessing game built as a [Devvit](https://developers.reddit.com) app, so
 - **Scores stay on the server** until you lock in your answer, so you can't peek at them.
 - **Share:** copies an emoji summary (🟩🟨⬜) to paste in the comments.
 - **Archive:** past puzzles are still playable from their posts. They don't count toward streaks.
+- **Play again:** after playing, load a different post from the same sources as a practice round. Practice rounds are graded on the device and never saved, so they don't affect stats, streaks or community numbers, and the post stays available for a future daily puzzle.
 
 ## Choosing where posts come from (moderators)
 

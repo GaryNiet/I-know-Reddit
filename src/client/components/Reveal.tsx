@@ -52,6 +52,8 @@ type CardProps = {
   animate: boolean;
   /** A replay: graded on this device only, never saved or counted. */
   practice: boolean;
+  /** Waiting for the server to pick another post. */
+  findingPost: boolean;
   onShare: () => void;
   onStats: () => void;
   onPlayAgain: () => void;
@@ -61,7 +63,7 @@ export function ResultCard(p: CardProps) {
   const r = p.result;
   return (
     <section className="result" aria-label="Your result">
-      {p.practice && <div className="practice-tag">Practice round · not counted</div>}
+      {p.practice && <div className="practice-tag">Practice · not counted</div>}
       <div className="verdict">{verdict(r.points)}</div>
       <div className="points">
         <CountUp to={r.points} ms={p.animate && !reducedMotion() ? 900 : 0} />
@@ -98,8 +100,13 @@ export function ResultCard(p: CardProps) {
           </button>
         </div>
       )}
-      <button type="button" className="btn secondary block play-again" onClick={p.onPlayAgain}>
-        <Replay /> Play again
+      <button
+        type="button"
+        className="btn secondary block play-again"
+        disabled={p.findingPost}
+        onClick={p.onPlayAgain}
+      >
+        <Replay /> {p.findingPost ? 'Finding another post…' : 'Play again'}
       </button>
       {!p.practice && p.community && p.community.plays > 1 && (
         <div className="community">

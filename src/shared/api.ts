@@ -121,6 +121,19 @@ export type SubmitResponse = {
   community: Community | null;
 };
 
+export type PracticeRequest = {
+  /** Post ids already played in this session, so they aren't picked again. */
+  exclude: string[];
+};
+
+/** A one-off practice round. Never saved; the client grades it itself. */
+export type PracticeResponse = {
+  type: 'practice';
+  post: PuzzlePost;
+  /** In display (shuffled) order, with scores so the client can grade locally. */
+  comments: RevealedComment[];
+};
+
 export type SubredditSuggestion = {
   name: string;
   subscribers?: number | undefined;

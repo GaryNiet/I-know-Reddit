@@ -5,6 +5,8 @@ import type {
   ArchiveResponse,
   ErrorResponse,
   InitResponse,
+  PracticeRequest,
+  PracticeResponse,
   Result,
   SaveSourcesResponse,
   SourceConfig,
@@ -15,7 +17,7 @@ import type {
   SubredditSuggestion,
 } from '../../shared/api';
 import { computeStats, grade, isValidGuess } from '../../shared/scoring';
-import { nextPuzzleAt, regeneratePuzzle } from '../core/puzzle';
+import { buildPuzzle, nextPuzzleAt, regeneratePuzzle, todayUtc } from '../core/puzzle';
 import { normalizeSubredditName } from '../core/select';
 import { KNOWN_SUBREDDITS, rankSuggestions } from '../core/suggest';
 import {
@@ -147,6 +149,23 @@ api.post('/submit', async (c) => {
     stats: userId ? computeStats(dates, results) : null,
     community: await getCommunity(puzzle.date),
   });
+});
+
+// Play again: a fresh post from the same sources, for practice. Nothing is
+// stored (not the puzzle, the result, stats or community numbers) and the
+// post isn't marked as used, so it can still become a daily puzzle later.
+api.post('/practice', async (c) => {
+  const body = await c.req.json<PracticeRequest>().catch(() => null);
+  const exclude = Array.isArray(body?.exclude)
+    ? body.exclude.filter((x): x is string => typeof x === 'string').slice(0, 100)
+    : [];
+  try {
+    const p = await buildPuzzle(todayUtc(), await getSources(), { exclude, practice: true });
+    return c.json<PracticeResponse>({ type: 'practice', post: p.post, comments: reveal(p) });
+  } catch (err) {
+    console.warn(`practice failed: ${String(err)}`);
+    return fail(c, "Couldn't find another post to play right now. Try again in a bit.", 500);
+  }
 });
 
 api.get('/archive', async (c) => {

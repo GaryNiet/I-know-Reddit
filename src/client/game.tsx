@@ -1,10 +1,18 @@
 import './base.css';
 import './game.css';
 
-import { StrictMode, useCallback, useEffect, useState } from 'react';
+import { StrictMode, useCallback, useEffect, useRef, useState } from 'react';
 import { createRoot } from 'react-dom/client';
 import { context, navigateTo, showToast } from '@devvit/web/client';
-import type { InitResponse, Result, SourceConfig, SubmitResponse } from '../shared/api';
+import type {
+  InitResponse,
+  PracticeResponse,
+  PuzzlePost,
+  Result,
+  RevealedComment,
+  SourceConfig,
+  SubmitResponse,
+} from '../shared/api';
 import { grade } from '../shared/scoring';
 import { Lightbox, PostCard } from './components/Post';
 import { Picker } from './components/Picker';
@@ -41,6 +49,8 @@ function sourceLabel(s: SourceConfig): string {
   return `r/${s.subreddits.slice(0, 2).join(', r/')} and ${s.subreddits.length - 2} more`;
 }
 
+type Practice = { post: PuzzlePost; comments: RevealedComment[]; result: Result | null };
+
 export function App() {
   const [data, setData] = useState<InitResponse | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -50,15 +60,16 @@ export function App() {
   const [zoom, setZoom] = useState<string | null>(null);
   const [fromRects, setFromRects] = useState<Map<string, DOMRect> | null>(null);
   const [shareText, setShareText] = useState('');
-  // Replays (for testing): graded on this device, never sent to the server.
-  const [replaying, setReplaying] = useState(false);
-  const [practice, setPractice] = useState<Result | null>(null);
+  // Play again: a different post as a practice round. Graded on this device;
+  // nothing about it is saved or counted.
+  const [practice, setPractice] = useState<Practice | null>(null);
+  const [findingPost, setFindingPost] = useState(false);
+  const practiced = useRef<string[]>([]);
 
   const apply = useCallback((d: InitResponse) => {
     setError(null);
     setData(d);
     setFromRects(null);
-    setReplaying(false);
     setPractice(null);
     // Restore a half-finished ranking.
     const ids = new Set(d.puzzle?.comments.map((c) => c.id) ?? []);
@@ -90,9 +101,9 @@ export function App() {
   const setGuess = useCallback(
     (g: string[]) => {
       setGuessState(g);
-      if (data?.puzzle && !replaying) writeLocal(progressKey(data.puzzle.date), JSON.stringify(g));
+      if (data?.puzzle && !practice) writeLocal(progressKey(data.puzzle.date), JSON.stringify(g));
     },
-    [data, replaying]
+    [data, practice]
   );
 
   const closeSheet = useCallback(() => {
@@ -110,13 +121,12 @@ export function App() {
     for (const el of document.querySelectorAll<HTMLElement>('.comment[data-id]')) {
       rects.set(el.dataset.id ?? '', el.getBoundingClientRect());
     }
-    if (replaying && data.reveal) {
-      // Replay: the scores are already known, so grade locally and save nothing.
-      const { marks, points } = grade(data.reveal, guess);
+    if (practice) {
+      // Practice: the server already sent the scores, so grade here and save nothing.
+      const { marks, points } = grade(practice.comments, guess);
       vibrate([10, 40, 10]);
       setFromRects(rects);
-      setPractice({ guess, marks, points, at: Date.now(), daily: false });
-      setReplaying(false);
+      setPractice({ ...practice, result: { guess, marks, points, at: Date.now(), daily: false } });
       scrollToResult();
       return;
     }
@@ -135,8 +145,25 @@ export function App() {
     }
   };
 
-  const playAgain = () => {
-    setReplaying(true);
+  const playAgain = async () => {
+    if (!data?.puzzle || findingPost) return;
+    setFindingPost(true);
+    try {
+      const exclude = [data.puzzle.post.id, ...practiced.current];
+      const r = await api<PracticeResponse>('/practice', { method: 'POST', body: { exclude } });
+      practiced.current.push(r.post.id);
+      setPractice({ post: r.post, comments: r.comments, result: null });
+      setFromRects(null);
+      setGuessState([]);
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    } catch (e) {
+      showToast(e instanceof Error ? e.message : 'Something went wrong, please try again.');
+    } finally {
+      setFindingPost(false);
+    }
+  };
+
+  const backToPuzzle = () => {
     setPractice(null);
     setFromRects(null);
     setGuessState([]);
@@ -263,11 +290,9 @@ export function App() {
               </div>
             )}
             <div className="meta-row">
-              <span className="pill">
-                #{p.number} · {prettyDate(p.date)}
-              </span>
+              <span className="pill">{practice ? 'Practice' : `#${p.number} · ${prettyDate(p.date)}`}</span>
               <span className="right">
-                {data.isMod && (
+                {data.isMod && !practice && (
                   <button type="button" className="pill mod" onClick={() => setSheet('sources')}>
                     <Gear /> Source
                   </button>
@@ -276,47 +301,99 @@ export function App() {
               </span>
             </div>
 
-            {replaying && (
+            {practice && (
               <div className="banner">
                 <span>🔁</span>
-                <span>Practice round. This play isn't saved and doesn't count toward your score or streak.</span>
+                <span>
+                  Practice round with a different post. It isn't saved and doesn't count toward your score or streak.{' '}
+                  <a
+                    href="#"
+                    onClick={(e) => {
+                      e.preventDefault();
+                      backToPuzzle();
+                    }}
+                  >
+                    Back to today's puzzle
+                  </a>
+                </span>
               </div>
             )}
 
-            <PostCard post={p.post} revealed={!!data.result && !replaying} onZoom={setZoom} />
-
-            {data.result && data.reveal && !replaying ? (
+            {practice ? (
               <>
-                <ResultCard
-                  key={practice ? `practice-${practice.at}` : 'real'}
-                  result={practice ?? data.result}
-                  practice={practice !== null}
-                  stats={data.stats}
-                  community={data.community}
-                  loggedIn={data.username !== null}
-                  isLatest={data.isLatest}
-                  nextPuzzleAt={data.nextPuzzleAt}
-                  animate={fromRects !== null}
-                  onShare={() => void share()}
-                  onStats={() => setSheet('stats')}
-                  onPlayAgain={playAgain}
-                />
-                <RevealList
-                  key={practice ? `practice-${practice.at}` : 'real'}
-                  reveal={data.reveal}
-                  result={practice ?? data.result}
-                  permalink={p.post.permalink}
-                  from={fromRects}
-                />
+                <PostCard post={practice.post} revealed={practice.result !== null} onZoom={setZoom} />
+                {practice.result ? (
+                  <>
+                    <ResultCard
+                      key={`practice-${practice.result.at}`}
+                      result={practice.result}
+                      practice
+                      stats={null}
+                      community={null}
+                      loggedIn
+                      isLatest={false}
+                      nextPuzzleAt={data.nextPuzzleAt}
+                      animate={fromRects !== null}
+                      findingPost={findingPost}
+                      onShare={() => undefined}
+                      onStats={() => setSheet('stats')}
+                      onPlayAgain={() => void playAgain()}
+                    />
+                    <RevealList
+                      key={`practice-${practice.result.at}`}
+                      reveal={practice.comments}
+                      result={practice.result}
+                      permalink={practice.post.permalink}
+                      from={fromRects}
+                    />
+                  </>
+                ) : (
+                  <Picker
+                    key={practice.post.id}
+                    comments={practice.comments.map(({ id, body }) => ({ id, body }))}
+                    guess={guess}
+                    setGuess={setGuess}
+                    onSubmit={() => void submit()}
+                    submitting={false}
+                  />
+                )}
               </>
             ) : (
-              <Picker
-                comments={p.comments}
-                guess={guess}
-                setGuess={setGuess}
-                onSubmit={() => void submit()}
-                submitting={submitting}
-              />
+              <>
+                <PostCard post={p.post} revealed={data.result !== null} onZoom={setZoom} />
+                {data.result && data.reveal ? (
+                  <>
+                    <ResultCard
+                      result={data.result}
+                      practice={false}
+                      stats={data.stats}
+                      community={data.community}
+                      loggedIn={data.username !== null}
+                      isLatest={data.isLatest}
+                      nextPuzzleAt={data.nextPuzzleAt}
+                      animate={fromRects !== null}
+                      findingPost={findingPost}
+                      onShare={() => void share()}
+                      onStats={() => setSheet('stats')}
+                      onPlayAgain={() => void playAgain()}
+                    />
+                    <RevealList
+                      reveal={data.reveal}
+                      result={data.result}
+                      permalink={p.post.permalink}
+                      from={fromRects}
+                    />
+                  </>
+                ) : (
+                  <Picker
+                    comments={p.comments}
+                    guess={guess}
+                    setGuess={setGuess}
+                    onSubmit={() => void submit()}
+                    submitting={submitting}
+                  />
+                )}
+              </>
             )}
           </>
         )}

@@ -9,7 +9,9 @@ import { createDevvitTest } from '@devvit/test/server/vitest';
 import { Context, reddit, runWithContext } from '@devvit/web/server';
 import type {
   ArchiveResponse,
+  ErrorResponse,
   InitResponse,
+  PracticeResponse,
   SaveSourcesResponse,
   SubmitResponse,
   SubredditSearchResponse,
@@ -287,4 +289,38 @@ test('r/popular unavailable falls back to r/all', async ({ headers }) => {
   vi.mocked(source.fetchTopLevelComments).mockResolvedValue(GOOD);
   expect((await call(headers, '/internal/scheduler/daily-puzzle', { method: 'POST' })).status).toBe(200);
   expect(vi.mocked(source.fetchTopPosts)).toHaveBeenCalledWith('all', 'day', 300);
+});
+
+test('play again: a different post, nothing saved', async ({ headers }) => {
+  vi.useFakeTimers({ toFake: ['Date'] });
+  vi.setSystemTime(new Date(`${TODAY}T00:05:00Z`));
+  vi.mocked(source.fetchTopPosts).mockImplementation(async (sub) =>
+    sub === 'popular' ? [...POPULAR, post('next', { score: 60_000 })] : []
+  );
+  vi.mocked(source.fetchTopLevelComments).mockImplementation(async (id) => COMMENTS[id] ?? []);
+  asModerator(false);
+
+  await call(headers, '/internal/scheduler/daily-puzzle', { method: 'POST' });
+  const today = (await call<InitResponse>(headers, '/api/init')).body;
+  expect(today.puzzle?.post.id).toBe('t3_good');
+
+  // Today's post is already used, so practice picks the other suitable one, with scores.
+  const first = await call<PracticeResponse>(headers, '/api/practice', { method: 'POST', body: { exclude: [] } });
+  expect(first.status).toBe(200);
+  expect(first.body.post.id).toBe('t3_next');
+  expect(first.body.comments.map((c) => c.score).sort((a, b) => b - a)).toEqual([5400, 3100, 1200, 640, 310]);
+
+  // Posts already practiced are skipped; with none left it says so.
+  const none = await call<ErrorResponse>(headers, '/api/practice', { method: 'POST', body: { exclude: ['t3_next'] } });
+  expect(none.status).toBe(500);
+  expect(none.body.message).toMatch(/another post/);
+
+  // Nothing was saved: no new puzzle, no results, and the post is still free.
+  const after = (await call<InitResponse>(headers, '/api/init')).body;
+  expect(after.result).toBeNull();
+  expect(after.stats?.played).toBe(0);
+  expect((await call<ArchiveResponse>(headers, '/api/archive')).body.entries).toHaveLength(1);
+  const again = await call<PracticeResponse>(headers, '/api/practice', { method: 'POST', body: {} });
+  expect(again.body.post.id).toBe('t3_next');
+  vi.useRealTimers();
 });

@@ -113,13 +113,36 @@ async function candidatesFromSubreddits(
 
 // ------------------------------------------------------------ building
 
-export async function buildPuzzle(date: string, sources: SourceConfig): Promise<StoredPuzzle> {
+type BuildOptions = {
+  /** Extra post ids to skip, on top of every post already used for a puzzle. */
+  exclude?: Iterable<string>;
+  /**
+   * Practice round: pick at random among the best candidates (so each try gives a
+   * different post) and don't take a puzzle number.
+   */
+  practice?: boolean;
+};
+
+const PRACTICE_POOL = 40;
+
+function randomized<T>(items: readonly T[]): T[] {
+  const a = [...items];
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j] as T, a[i] as T];
+  }
+  return a;
+}
+
+export async function buildPuzzle(date: string, sources: SourceConfig, opts: BuildOptions = {}): Promise<StoredPuzzle> {
   const used = await usedPostIds();
-  const { posts, note } =
+  for (const id of opts.exclude ?? []) used.add(id);
+  const { posts: found, note } =
     sources.mode === 'custom' && sources.subreddits.length
       ? await candidatesFromSubreddits(sources.subreddits, date, used)
       : await candidatesFromPopular(date, used);
-  console.log(`Puzzle ${date}: ${note}, ${posts.length} eligible image posts`);
+  const posts = opts.practice ? randomized(found.slice(0, PRACTICE_POOL)) : found;
+  console.log(`${opts.practice ? 'Practice' : 'Puzzle'} ${date}: ${note}, ${found.length} eligible image posts`);
 
   for (const post of posts.slice(0, MAX_POSTS_TO_TRY)) {
     const comments = pickComments(await fetchTopLevelComments(post.id));
@@ -131,7 +154,7 @@ export async function buildPuzzle(date: string, sources: SourceConfig): Promise<
     if (!image) continue;
     console.log(`  using r/${post.subredditName} "${post.title.slice(0, 50)}"`);
     return {
-      number: await nextPuzzleNumber(date),
+      number: opts.practice ? 0 : await nextPuzzleNumber(date),
       date,
       sourceDate: new Date(post.createdAt).toISOString().slice(0, 10),
       sources,
