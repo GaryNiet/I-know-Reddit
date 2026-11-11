@@ -34,7 +34,12 @@ async function load() {
       img.referrerPolicy = 'no-referrer';
       img.decoding = 'async';
       img.onerror = () => img.remove();
-      media.replaceChildren(img);
+      const title = document.createElement('span');
+      title.className = 'splash-title';
+      const text = document.createElement('span');
+      text.textContent = p.post.title;
+      title.append(text);
+      media.replaceChildren(img, title);
     }
     if (data.result) {
       setText('question', `You scored ${data.result.points} / 100`);
