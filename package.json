@@ -1,11 +1,46 @@
 {
-  "name": "i-know-reddit",
   "private": true,
+  "name": "i-know-reddit",
+  "version": "0.0.0",
   "type": "module",
   "scripts": {
-    "generate": "node scripts/generate-puzzle.mjs",
-    "test": "node --test scripts/*.test.mjs",
-    "serve": "python3 -m http.server 8000 --directory docs"
+    "build": "vite build",
+    "deploy": "npm run test:types && npm run lint && devvit upload",
+    "dev": "devvit playtest",
+    "launch": "npm run deploy && devvit publish",
+    "lint": "eslint 'src/**/*.{ts,tsx}'",
+    "login": "devvit login",
+    "prettier": "prettier --write .",
+    "test:types": "tsc --build",
+    "test:unit": "vitest run"
   },
-  "engines": { "node": ">=20" }
+  "engines": {
+    "node": ">=24.0.0"
+  },
+  "dependencies": {
+    "@devvit/start": "0.15.3",
+    "@devvit/web": "0.15.3",
+    "@hono/node-server": "2.1.6",
+    "devvit": "0.15.3",
+    "hono": "4.13.17",
+    "react": "19.3.1",
+    "react-dom": "19.3.1"
+  },
+  "devDependencies": {
+    "@devvit/test": "0.15.3",
+    "@eslint/js": "10.0.1",
+    "@types/node": "^24.13.3",
+    "@types/react": "19.3.0",
+    "@types/react-dom": "19.3.0",
+    "@vitejs/plugin-react": "6.3.0",
+    "eslint": "10.14.0",
+    "eslint-plugin-react-hooks": "7.1.1",
+    "eslint-plugin-react-refresh": "0.5.7",
+    "globals": "17.14.0",
+    "prettier": "3.9.10",
+    "typescript": "6.0.3",
+    "typescript-eslint": "8.72.2",
+    "vite": "8.3.7",
+    "vitest": "4.1.0"
+  }
 }
