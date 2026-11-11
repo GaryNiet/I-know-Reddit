@@ -88,10 +88,17 @@
 .comment.revealed:active { transform: none; }
 .comment.revealed.exact { background: var(--exact-soft); }
 .comment.revealed.close { background: var(--close-soft); }
+.comment.revealed.miss { background: var(--wrong-soft); }
 .rev-top { display: flex; gap: 12px; align-items: center; }
-.rev-top .slot { border: 2.5px solid var(--ink); color: #fff; background: var(--miss); }
-.comment.exact .slot { background: var(--exact); }
-.comment.close .slot { background: var(--close); }
+.ranks { display: flex; align-items: center; gap: 4px; flex: none; }
+.slot.real { border: 2.5px solid var(--ink); color: var(--surface); background: var(--text); }
+.slot.guess { border: 2.5px solid var(--ink); color: #fff; animation: pop .3s ease both; }
+.slot.guess.exact { background: var(--exact); }
+.slot.guess.close { background: var(--close); color: #1b1300; }
+.slot.guess.miss { background: var(--wrong); }
+.rank-key { display: flex; align-items: center; gap: 6px; margin: -4px 2px 10px; font-size: 12px; font-weight: 700; color: var(--muted); }
+.rank-key .slot { width: 22px; height: 22px; font-size: 12px; border-width: 2px; animation: none; }
+.rank-key .slot.guess { margin-left: 8px; }
 .rev-score { flex: none; text-align: right; font-weight: 800; font-variant-numeric: tabular-nums; display: flex; align-items: center; gap: 4px; color: var(--accent); }
 .rev-score svg { width: 16px; height: 16px; fill: currentColor; }
 .bar { height: 10px; border-radius: 6px; background: var(--surface); border: 2px solid var(--ink); margin: 10px 0 6px; overflow: hidden; }
@@ -100,7 +107,7 @@
 .rev-foot .tag { padding: 1px 8px; border-radius: 999px; border: 2px solid var(--ink); font-weight: 900; }
 .exact .tag { background: var(--exact); color: #fff; }
 .close .tag { background: var(--close); color: #1b1300; }
-.miss .tag { background: var(--miss-soft); color: var(--muted); }
+.miss .tag { background: var(--wrong); color: #fff; }
 
 /* ---------- action bar ---------- */
 .action-bar {
@@ -125,7 +132,7 @@
 .sq { display: inline-block; width: 18px; height: 18px; border-radius: 5px; vertical-align: middle; }
 .exact-bg, .sq.exact { background: var(--exact); }
 .close-bg, .sq.close { background: var(--close); }
-.miss-bg, .sq.miss { background: var(--miss); }
+.miss-bg, .sq.miss { background: var(--wrong); }
 .result-stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin: 4px 0 14px; }
 .result-stats div { background: var(--surface-2); border: 2px solid var(--ink); border-radius: 12px; padding: 8px 4px; }
 .result-stats b { font-weight: 900; }

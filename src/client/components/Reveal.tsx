@@ -175,6 +175,10 @@ export function RevealList({ reveal, result, permalink, from }: ListProps) {
           <div className="sub">Real upvote counts when the puzzle was made.</div>
         </div>
       </div>
+      <div className="rank-key" aria-hidden="true">
+        <span className="slot real">1</span> real rank
+        <span className="slot guess exact">1</span> your pick
+      </div>
       <ul className="comments" role="list" ref={listRef}>
         {order.map((id, i) => {
           const c = byId.get(id);
@@ -182,11 +186,23 @@ export function RevealList({ reveal, result, permalink, from }: ListProps) {
           const mark = result.marks[i] ?? 'miss';
           const pct = Math.max(3, Math.round((c.score / top) * 100));
           const delay = animate ? i * 160 : 0;
+          const picked = result.guess.indexOf(id) + 1;
           return (
             <li key={id}>
               <div className={`comment revealed ${mark}`} data-id={id}>
                 <div className="rev-top">
-                  <span className="slot">{i + 1}</span>
+                  <span className="ranks">
+                    <span className="slot real" aria-label={`Real rank ${i + 1}`}>
+                      {i + 1}
+                    </span>
+                    <span
+                      className={`slot guess ${mark}`}
+                      aria-label={`You put it ${ordinal(picked)}`}
+                      style={{ animationDelay: `${delay + 200}ms` }}
+                    >
+                      {picked || '–'}
+                    </span>
+                  </span>
                   <span className="c-body">
                     {c.body}
                     <span className="c-author">u/{c.author}</span>
@@ -200,7 +216,13 @@ export function RevealList({ reveal, result, permalink, from }: ListProps) {
                   <span style={{ width: filled ? `${pct}%` : 0, transitionDelay: `${delay}ms` }} />
                 </div>
                 <div className="rev-foot">
-                  <span>You put it {ordinal(result.guess.indexOf(id) + 1)}</span>
+                  <span>
+                    {mark === 'exact'
+                      ? 'Spot on'
+                      : mark === 'close'
+                        ? `You put it ${ordinal(picked)}, one off`
+                        : `You put it ${ordinal(picked)}`}
+                  </span>
                   <span className="tag">{tag(mark, reveal.length)}</span>
                 </div>
               </div>
