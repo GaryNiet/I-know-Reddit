@@ -10,6 +10,7 @@ export function toRawPost(p: Post): RawPost {
   return {
     id: p.id,
     title: p.title,
+    body: p.body,
     subredditName: p.subredditName,
     authorName: p.authorName,
     score: p.score,

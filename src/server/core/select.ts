@@ -5,6 +5,8 @@
 export type RawPost = {
   id: string;
   title: string;
+  /** Text the poster wrote with the image, if any. */
+  body?: string | undefined;
   subredditName: string;
   authorName: string;
   score: number;
@@ -48,6 +50,8 @@ export const CONFIG = {
   minScoreGap: 5,
   /** Longest comment allowed, in characters (after cleaning up markdown). */
   maxCommentChars: 200,
+  /** Image posts with a longer description need too much context to guess from. */
+  maxPostBodyChars: 50,
 };
 
 // ------------------------------------------------------------ posts
@@ -83,6 +87,7 @@ export function isEligiblePost(
   if (post.nsfw || post.spoiler || post.stickied || post.removed || post.quarantined) return false;
   if (opts.usedIds.has(post.id)) return false;
   if (post.numComments < opts.minComments) return false;
+  if (cleanBody(post.body ?? '').length > CONFIG.maxPostBodyChars) return false;
   if (opts.window && (post.createdAt < opts.window[0] || post.createdAt > opts.window[1])) return false;
   return extractImage(post) !== null;
 }

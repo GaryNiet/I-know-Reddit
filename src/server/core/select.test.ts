@@ -108,6 +108,10 @@ test('isEligiblePost', () => {
   assert.equal(isEligiblePost(post({ nsfw: true }), opts), false);
   assert.equal(isEligiblePost(post({ spoiler: true }), opts), false);
   assert.equal(isEligiblePost(post({ numComments: 5 }), opts), false);
+  // A short description is fine; one over 50 characters needs too much context.
+  assert.equal(isEligiblePost(post({ body: 'OC, shot on film.' }), opts), true);
+  assert.equal(isEligiblePost(post({ body: 'x'.repeat(50) }), opts), true);
+  assert.equal(isEligiblePost(post({ body: 'x'.repeat(51) }), opts), false);
   assert.equal(isEligiblePost(post(), { ...opts, usedIds: new Set(['t3_p']) }), false);
   const window: [number, number] = [Date.parse('2026-11-01T00:00:00Z'), Date.parse('2026-11-02T00:00:00Z')];
   assert.equal(isEligiblePost(post(), { ...opts, window }), false);
