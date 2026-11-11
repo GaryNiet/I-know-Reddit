@@ -12,6 +12,8 @@ A daily guessing game built as a [Devvit](https://developers.reddit.com) app, so
 
 ## Choosing where posts come from (moderators)
 
+> **Currently turned off:** the ⚙ Source button is commented out in `src/client/game.tsx`, so puzzles use r/popular (or a list saved before it was turned off). Uncomment those lines to bring it back.
+
 By default each puzzle uses an image post from **yesterday's top posts on r/popular**. Moderators can switch to their own list of subreddits:
 
 1. Open any puzzle post and tap **⚙ Source** (only moderators see it).

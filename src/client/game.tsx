@@ -18,8 +18,9 @@ import { Lightbox, PostCard } from './components/Post';
 import { Picker } from './components/Picker';
 import { ResultCard, RevealList } from './components/Reveal';
 import { ArchiveSheet, HelpSheet, ShareSheet, StatsSheet } from './components/Sheets';
-import { SourcesSheet } from './components/Sources';
-import { Calendar, Chart, Gear, Help } from './icons';
+// Source picker turned off for now; uncomment to bring it back.
+// import { SourcesSheet } from './components/Sources';
+import { Calendar, Chart, /* Gear, */ Help } from './icons';
 import { api, prettyDate, vibrate } from './util';
 
 type SheetName = 'help' | 'stats' | 'archive' | 'sources' | 'share' | null;
@@ -189,12 +190,13 @@ export function App() {
     }
   };
 
-  const regenerate = async () => {
-    await api('/regenerate', { method: 'POST' });
-    showToast("Today's puzzle has been replaced");
-    setSheet(null);
-    await load();
-  };
+  // Source picker turned off for now; uncomment to bring it back.
+  // const regenerate = async () => {
+  //   await api('/regenerate', { method: 'POST' });
+  //   showToast("Today's puzzle has been replaced");
+  //   setSheet(null);
+  //   await load();
+  // };
 
   if (error) {
     return (
@@ -260,11 +262,12 @@ export function App() {
           <div className="error-box">
             <h2>No puzzle yet</h2>
             <p>The first puzzle is posted shortly after midnight UTC.</p>
+            {/* Source picker turned off for now; uncomment to bring it back.
             {data.isMod && (
               <button type="button" className="btn primary" onClick={() => setSheet('sources')}>
                 Choose the puzzle source
               </button>
-            )}
+            )} */}
           </div>
         ) : (
           <>
@@ -292,11 +295,12 @@ export function App() {
             <div className="meta-row">
               <span className="pill">{practice ? 'Practice' : `#${p.number} · ${prettyDate(p.date)}`}</span>
               <span className="right">
+                {/* Source picker turned off for now; uncomment to bring it back.
                 {data.isMod && !practice && (
                   <button type="button" className="pill mod" onClick={() => setSheet('sources')}>
                     <Gear /> Source
                   </button>
-                )}
+                )} */}
                 {data.stats && data.stats.current > 0 && <span className="pill streak">🔥 {data.stats.current}</span>}
               </span>
             </div>
@@ -405,6 +409,7 @@ export function App() {
         <ArchiveSheet onClose={closeSheet} subredditName={context.subredditName} currentDate={p?.date ?? null} />
       )}
       {sheet === 'share' && <ShareSheet text={shareText} onClose={closeSheet} />}
+      {/* Source picker turned off for now; uncomment to bring it back.
       {sheet === 'sources' && (
         <SourcesSheet
           initial={data.sources}
@@ -412,7 +417,7 @@ export function App() {
           onSaved={(sources) => setData({ ...data, sources })}
           onRegenerate={regenerate}
         />
-      )}
+      )} */}
       {zoom && p && <Lightbox src={zoom} alt={p.post.title} onClose={() => setZoom(null)} />}
     </>
   );
