@@ -1,7 +1,7 @@
 import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { navigateTo, showLoginPrompt } from '@devvit/web/client';
 import type { Community, Mark, Result, RevealedComment, Stats } from '../../shared/api';
-import { actualOrder, pointsFor, verdict } from '../../shared/scoring';
+import { actualOrder, pointsFor } from '../../shared/scoring';
 import { Chart, External, Replay, Share, Up } from '../icons';
 import { full, ordinal, reducedMotion } from '../util';
 
@@ -64,7 +64,6 @@ export function ResultCard(p: CardProps) {
   return (
     <section className="result" aria-label="Your result">
       {p.practice && <div className="practice-tag">Practice · not counted</div>}
-      <div className="verdict">{verdict(r.points)}</div>
       <div className="points">
         <CountUp to={r.points} ms={p.animate && !reducedMotion() ? 900 : 0} />
         <small> / 100</small>

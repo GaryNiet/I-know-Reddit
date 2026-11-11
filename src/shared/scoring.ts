@@ -98,12 +98,3 @@ export function computeStats(
     playedLatest,
   };
 }
-
-export function verdict(points: number): string {
-  if (points === 100) return 'Perfect read of the hive mind';
-  if (points >= 80) return 'Certified Redditor';
-  if (points >= 60) return 'Seasoned lurker';
-  if (points >= 40) return 'Upvote-curious';
-  if (points >= 20) return 'Fresh account energy';
-  return 'Touch grass? Never.';
-}

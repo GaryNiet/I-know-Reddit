@@ -124,7 +124,6 @@
   animation: rise .4s ease both;
 }
 @keyframes rise { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
-.result .verdict { font-size: 14px; font-weight: 900; color: var(--muted); text-transform: uppercase; letter-spacing: .06em; }
 .result .points { font-size: 64px; font-weight: 900; line-height: 1; margin: 6px 0 2px; font-variant-numeric: tabular-nums; letter-spacing: -.03em; }
 .result .points small { font-size: 20px; color: var(--muted); font-weight: 700; letter-spacing: 0; }
 .squares { display: flex; justify-content: center; gap: 6px; margin: 12px 0 14px; }
