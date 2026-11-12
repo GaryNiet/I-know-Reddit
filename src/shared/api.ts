@@ -152,4 +152,27 @@ export type SaveSourcesResponse =
 
 export type ArchiveResponse = { entries: ArchiveEntry[] };
 
+export type LeaderboardEntry = {
+  rank: number;
+  username: string;
+  points: number;
+  isMe: boolean;
+};
+
+export type LeaderboardBoard = {
+  /** The top players, best first. */
+  entries: LeaderboardEntry[];
+  /** The viewer's own place, whether or not they're in the top list. */
+  me: { rank: number; points: number } | null;
+  players: number;
+};
+
+export type LeaderboardResponse = {
+  type: 'leaderboard';
+  /** Date of the puzzle the "today" board is for. */
+  date: string | null;
+  today: LeaderboardBoard;
+  allTime: LeaderboardBoard;
+};
+
 export type ErrorResponse = { status: 'error'; message: string };

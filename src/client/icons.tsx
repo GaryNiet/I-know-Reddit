@@ -59,3 +59,8 @@ export const Replay = () => (
     <path d="M4 12a8 8 0 1 0 2.4-5.7M4 4v4h4" />
   </svg>
 );
+export const Trophy = () => (
+  <svg {...P}>
+    <path d="M8 4h8v5a4 4 0 0 1-8 0zM8 6H5v1a3 3 0 0 0 3 3M16 6h3v1a3 3 0 0 1-3 3M12 13v4M8 20h8M9.5 17h5" />
+  </svg>
+);

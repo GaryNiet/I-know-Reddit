@@ -298,3 +298,32 @@
 .sheet-actions { display: grid; gap: 8px; margin-top: 16px; }
 .hint { font-size: 13px; color: var(--muted); margin: 8px 0 0; }
 .link-plain { background: none; border: 0; cursor: pointer; font: inherit; }
+
+/* ---------- leaderboard ---------- */
+.tabs { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin: 4px 0 12px; }
+.tab {
+  border: 2.5px solid var(--ink); border-radius: 12px; padding: 8px; font-weight: 900; cursor: pointer;
+  background: var(--surface); box-shadow: 2px 2px 0 var(--ink);
+}
+.tab.on { background: var(--accent); color: var(--accent-ink); }
+.board { list-style: none; padding: 0; margin: 0; display: grid; gap: 6px; }
+.board li {
+  display: flex; align-items: center; gap: 10px; padding: 8px 12px; border-radius: 12px;
+  background: var(--surface-2); border: 2px solid transparent;
+}
+.board li.me { border-color: var(--ink); background: var(--accent-soft); }
+.board .pos {
+  flex: none; width: 30px; height: 30px; border-radius: 50%; display: grid; place-items: center;
+  font-weight: 900; font-size: 14px; background: var(--surface); border: 2px solid var(--ink);
+}
+.board .pos.p1 { background: #ffd23f; }
+.board .pos.p2 { background: #d9dee5; }
+.board .pos.p3 { background: #e7a46b; }
+.board .who { flex: 1; min-width: 0; font-weight: 800; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.board .pts { font-weight: 900; font-variant-numeric: tabular-nums; }
+.board .pts small { color: var(--muted); font-weight: 700; }
+.board-me {
+  margin-bottom: 12px; padding: 10px 12px; border-radius: 12px; text-align: center; font-size: 14px;
+  border: 2.5px solid var(--ink); box-shadow: var(--pop-sm); background: var(--surface);
+}
+

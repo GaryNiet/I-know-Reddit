@@ -4,6 +4,7 @@ A daily guessing game built as a [Devvit](https://developers.reddit.com) app, so
 
 - **Scoring:** +40 for putting the most upvoted comment first, +20 for each other comment in exactly the right spot, +5 if a comment is one spot off. 100 is a perfect game.
 - **Streaks and stats** are stored per Reddit account, so they work on any device. Stats include games played, average, best streak, perfect games, the last 7 puzzles and a score distribution.
+- **Leaderboard** (🏆 in the top bar): the top 10 players **today** and **all time**, plus your own position. Only daily puzzles played on their day count; past puzzles and practice rounds don't. Replacing a day's puzzle takes its scores off the boards.
 - **Community results:** after playing you see how many people played and their average score.
 - **Scores stay on the server** until you lock in your answer, so you can't peek at them.
 - **Share:** copies an emoji summary (🟩🟨⬜) to paste in the comments.

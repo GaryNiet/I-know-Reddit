@@ -17,13 +17,13 @@ import { grade } from '../shared/scoring';
 import { Lightbox, PostCard } from './components/Post';
 import { Picker } from './components/Picker';
 import { ResultCard, RevealList } from './components/Reveal';
-import { ArchiveSheet, HelpSheet, ShareSheet, StatsSheet } from './components/Sheets';
+import { ArchiveSheet, HelpSheet, LeaderboardSheet, ShareSheet, StatsSheet } from './components/Sheets';
 // Source picker turned off for now; uncomment to bring it back.
 // import { SourcesSheet } from './components/Sources';
-import { Calendar, Chart, /* Gear, */ Help } from './icons';
+import { Calendar, Chart, /* Gear, */ Help, Trophy } from './icons';
 import { api, prettyDate, vibrate } from './util';
 
-type SheetName = 'help' | 'stats' | 'archive' | 'sources' | 'share' | null;
+type SheetName = 'help' | 'stats' | 'archive' | 'leaderboard' | 'sources' | 'share' | null;
 
 const HELP_SEEN_KEY = 'iknowreddit:seen-help';
 const progressKey = (date: string) => `iknowreddit:progress:${date}`;
@@ -235,6 +235,9 @@ export function App() {
             <button type="button" className="icon-btn" aria-label="Past puzzles" onClick={() => setSheet('archive')}>
               <Calendar />
             </button>
+            <button type="button" className="icon-btn" aria-label="Leaderboard" onClick={() => setSheet('leaderboard')}>
+              <Trophy />
+            </button>
           </div>
           <div className="brand">
             <span className="brand-mark" aria-hidden="true">
@@ -409,6 +412,7 @@ export function App() {
         <ArchiveSheet onClose={closeSheet} subredditName={context.subredditName} currentDate={p?.date ?? null} />
       )}
       {sheet === 'share' && <ShareSheet text={shareText} onClose={closeSheet} />}
+      {sheet === 'leaderboard' && <LeaderboardSheet onClose={closeSheet} loggedIn={data.username !== null} />}
       {/* Source picker turned off for now; uncomment to bring it back.
       {sheet === 'sources' && (
         <SourcesSheet

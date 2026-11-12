@@ -17,6 +17,7 @@ import {
   nextPuzzleNumber,
   recordSeenSubreddits,
   resetCommunity,
+  resetLeaderboardDay,
   savePuzzle,
   usedPostIds,
   withLock,
@@ -230,6 +231,7 @@ export async function regeneratePuzzle(date = todayUtc()): Promise<StoredPuzzle>
     puzzle.redditPostId = existing.redditPostId;
     await savePuzzle(puzzle);
     await resetCommunity(date);
+    await resetLeaderboardDay(date);
     return puzzle;
   });
 }

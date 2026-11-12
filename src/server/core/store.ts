@@ -1,7 +1,7 @@
 // Redis storage. Keys are scoped to the installation (one per subreddit).
 
 import { redis } from '@devvit/web/server';
-import type { Community, Result, SourceConfig, StoredPuzzle } from '../../shared/api';
+import type { Community, LeaderboardBoard, Result, SourceConfig, StoredPuzzle } from '../../shared/api';
 
 const K = {
   sources: 'ikr:sources',
@@ -14,6 +14,10 @@ const K = {
   community: (date: string) => `ikr:community:${date}`, // hash: plays,total,perfect
   lock: (date: string) => `ikr:lock:${date}`,
   subInfo: (name: string) => `ikr:subinfo:${name.toLowerCase()}`,
+  lbAll: 'ikr:lb:all', // zset: userId -> total points from daily plays
+  lbDay: (date: string) => `ikr:lb:day:${date}`, // zset: userId -> points on that day's puzzle
+  lbSynced: 'ikr:lb:synced', // hash: userId -> 1 once their earlier plays are counted
+  usernames: 'ikr:usernames', // hash: userId -> username
 };
 
 export const DEFAULT_SOURCES: SourceConfig = { mode: 'popular', subreddits: [] };
@@ -145,4 +149,73 @@ export async function getCommunity(date: string): Promise<Community | null> {
     avg: Math.round(Number(h.total ?? 0) / plays),
     perfect: Number(h.perfect ?? 0),
   };
+}
+
+// ------------------------------------------------------------ leaderboard
+// Only daily plays (a puzzle played on its own day) count, so replaying old
+// puzzles from the archive can't farm points. Practice rounds never reach here.
+
+/** Counts plays made before the leaderboard existed, once per player. */
+export async function syncLeaderboard(
+  userId: string,
+  username: string | undefined,
+  results: Record<string, Result>,
+  latestDate: string | null
+): Promise<void> {
+  if (await redis.hGet(K.lbSynced, userId)) return;
+  const daily = Object.entries(results).filter(([, r]) => r.daily);
+  if (daily.length) {
+    const total = daily.reduce((s, [, r]) => s + r.points, 0);
+    await redis.zAdd(K.lbAll, { member: userId, score: total });
+    const today = latestDate ? results[latestDate] : undefined;
+    if (latestDate && today?.daily) await redis.zAdd(K.lbDay(latestDate), { member: userId, score: today.points });
+  }
+  if (username) await redis.hSet(K.usernames, { [userId]: username });
+  await redis.hSet(K.lbSynced, { [userId]: '1' });
+}
+
+export async function recordLeaderboardPlay(
+  userId: string,
+  username: string | undefined,
+  date: string,
+  points: number
+): Promise<void> {
+  await redis.zIncrBy(K.lbAll, userId, points);
+  await redis.zAdd(K.lbDay(date), { member: userId, score: points });
+  if (username) await redis.hSet(K.usernames, { [userId]: username });
+}
+
+/** When a day's puzzle is replaced, its scores come off the boards (it can be played again). */
+export async function resetLeaderboardDay(date: string): Promise<void> {
+  const rows = await redis.zRange(K.lbDay(date), 0, -1, { by: 'rank' });
+  for (const { member, score } of rows) await redis.zIncrBy(K.lbAll, member, -score);
+  await redis.del(K.lbDay(date));
+}
+
+async function readBoard(key: string, userId: string | undefined, limit: number): Promise<LeaderboardBoard> {
+  const [top, players] = await Promise.all([
+    redis.zRange(key, 0, limit - 1, { by: 'rank', reverse: true }),
+    redis.zCard(key),
+  ]);
+  const names = top.length ? await redis.hMGet(K.usernames, top.map((r) => r.member)) : [];
+  const entries = top.map((r, i) => ({
+    rank: i + 1,
+    username: names[i] ?? 'unknown',
+    points: r.score,
+    isMe: r.member === userId,
+  }));
+  let me: LeaderboardBoard['me'] = null;
+  if (userId) {
+    const [points, asc] = await Promise.all([redis.zScore(key, userId), redis.zRank(key, userId)]);
+    if (points !== undefined && asc !== undefined) me = { rank: players - asc, points };
+  }
+  return { entries, me, players };
+}
+
+export async function getLeaderboards(userId: string | undefined, date: string | null, limit = 10) {
+  const [allTime, today] = await Promise.all([
+    readBoard(K.lbAll, userId, limit),
+    date ? readBoard(K.lbDay(date), userId, limit) : Promise.resolve<LeaderboardBoard>({ entries: [], me: null, players: 0 }),
+  ]);
+  return { allTime, today };
 }

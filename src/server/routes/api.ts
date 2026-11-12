@@ -5,6 +5,7 @@ import type {
   ArchiveResponse,
   ErrorResponse,
   InitResponse,
+  LeaderboardResponse,
   PracticeRequest,
   PracticeResponse,
   Result,
@@ -26,13 +27,16 @@ import {
   dateForPost,
   getCachedSubInfo,
   getCommunity,
+  getLeaderboards,
   getPuzzle,
   getResults,
   getSeenSubreddits,
   getSources,
   listPuzzleDates,
+  recordLeaderboardPlay,
   saveResult,
   setSources,
+  syncLeaderboard,
   type SubInfo,
 } from '../core/store';
 
@@ -138,9 +142,11 @@ api.post('/submit', async (c) => {
     puzzleId: puzzle.post.id,
   };
   if (userId) {
+    await syncLeaderboard(userId, context.username, results, dates[dates.length - 1] ?? null);
     await saveResult(userId, puzzle.date, result);
     results[puzzle.date] = result;
     await addCommunityPlay(puzzle.date, points);
+    if (result.daily) await recordLeaderboardPlay(userId, context.username, puzzle.date, points);
   }
   return c.json<SubmitResponse>({
     type: 'submit',
@@ -166,6 +172,15 @@ api.post('/practice', async (c) => {
     console.warn(`practice failed: ${String(err)}`);
     return fail(c, "Couldn't find another post to play right now. Try again in a bit.", 500);
   }
+});
+
+api.get('/leaderboard', async (c) => {
+  const dates = await listPuzzleDates();
+  const latest = dates[dates.length - 1] ?? null;
+  const userId = context.userId;
+  if (userId) await syncLeaderboard(userId, context.username, await getResults(userId), latest);
+  const boards = await getLeaderboards(userId, latest);
+  return c.json<LeaderboardResponse>({ type: 'leaderboard', date: latest, ...boards });
 });
 
 api.get('/archive', async (c) => {

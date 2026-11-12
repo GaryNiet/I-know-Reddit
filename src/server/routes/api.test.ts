@@ -11,6 +11,7 @@ import type {
   ArchiveResponse,
   ErrorResponse,
   InitResponse,
+  LeaderboardResponse,
   PracticeResponse,
   SaveSourcesResponse,
   SubmitResponse,
@@ -322,5 +323,74 @@ test('play again: a different post, nothing saved', async ({ headers }) => {
   expect((await call<ArchiveResponse>(headers, '/api/archive')).body.entries).toHaveLength(1);
   const again = await call<PracticeResponse>(headers, '/api/practice', { method: 'POST', body: {} });
   expect(again.body.post.id).toBe('t3_next');
+  vi.useRealTimers();
+});
+
+test('leaderboard: today and all time, with your position', async ({ headers }) => {
+  vi.useFakeTimers({ toFake: ['Date'] });
+  vi.setSystemTime(new Date(`${TODAY}T00:05:00Z`));
+  vi.mocked(source.fetchTopPosts).mockImplementation(async (sub) =>
+    sub === 'popular' ? [...POPULAR, post('next', { score: 60_000 })] : []
+  );
+  vi.mocked(source.fetchTopLevelComments).mockImplementation(async (id) => COMMENTS[id] ?? []);
+  asModerator(false);
+  const as = (id: string, name: string) => ({ ...headers, 'devvit-user': `t2_${id}`, 'devvit-user-name': name });
+  const alice = as('a', 'alice');
+  const bob = as('b', 'bob');
+  const carol = as('c', 'carol');
+
+  await call(headers, '/internal/scheduler/daily-puzzle', { method: 'POST' });
+  const postId = (await call<InitResponse>(headers, '/api/init')).body.latestPostId ?? '';
+
+  // Carol has a daily play from before the leaderboard existed.
+  const { saveResult } = await import('../core/store');
+  await runWithContext(Context(carol), () =>
+    saveResult('t2_c', '2026-11-11', { guess: [], points: 70, marks: [], at: 1, daily: true })
+  );
+
+  await call(alice, '/api/submit', { method: 'POST', postId, body: { guess: CORRECT } }); // 100
+  await call(bob, '/api/submit', { method: 'POST', postId, body: { guess: ['t1_b', 't1_a', 't1_c', 't1_d'] } }); // 50
+
+  const forBob = (await call<LeaderboardResponse>(bob, '/api/leaderboard')).body;
+  expect(forBob.date).toBe(TODAY);
+  expect(forBob.today.entries.map((e) => [e.rank, e.username, e.points, e.isMe])).toEqual([
+    [1, 'alice', 100, false],
+    [2, 'bob', 50, true],
+  ]);
+  expect(forBob.today.me).toEqual({ rank: 2, points: 50 });
+
+  // Carol's earlier play counts as soon as she shows up.
+  const forCarol = (await call<LeaderboardResponse>(carol, '/api/leaderboard')).body;
+  expect(forCarol.allTime.entries.map((e) => [e.username, e.points])).toEqual([
+    ['alice', 100],
+    ['carol', 70],
+    ['bob', 50],
+  ]);
+  expect(forCarol.allTime.me).toEqual({ rank: 2, points: 70 });
+  expect(forCarol.today.me).toBeNull();
+  expect(forCarol.allTime.players).toBe(3);
+
+  // Practice rounds don't count.
+  await call(alice, '/api/practice', { method: 'POST', body: { exclude: [] } });
+  expect((await call<LeaderboardResponse>(alice, '/api/leaderboard')).body.allTime.me).toEqual({ rank: 1, points: 100 });
+
+  // Logged out: the boards show, without a position.
+  const anon = (await call<LeaderboardResponse>({ ...headers, 'devvit-user': undefined }, '/api/leaderboard')).body;
+  expect(anon.today.entries).toHaveLength(2);
+  expect(anon.today.me).toBeNull();
+
+  // Replacing today's puzzle takes its scores off both boards; playing the new one counts.
+  asModerator(true);
+  expect((await call(alice, '/api/regenerate', { method: 'POST' })).status).toBe(200);
+  const cleared = (await call<LeaderboardResponse>(alice, '/api/leaderboard')).body;
+  expect(cleared.today.entries).toEqual([]);
+  expect(cleared.allTime.entries.find((e) => e.username === 'alice')?.points).toBe(0);
+  const fresh = (await call<InitResponse>(alice, '/api/init', { postId })).body;
+  const order = ['t1_nexta', 't1_nextb', 't1_nextc', 't1_nextd'];
+  expect(fresh.puzzle?.comments.map((c) => c.id).sort()).toEqual(order);
+  await call(alice, '/api/submit', { method: 'POST', postId, body: { guess: order } });
+  const after = (await call<LeaderboardResponse>(alice, '/api/leaderboard')).body;
+  expect(after.today.me).toEqual({ rank: 1, points: 100 });
+  expect(after.allTime.me).toEqual({ rank: 1, points: 100 });
   vi.useRealTimers();
 });

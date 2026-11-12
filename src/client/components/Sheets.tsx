@@ -1,6 +1,6 @@
 import { useEffect, useState, type ReactNode } from 'react';
-import { navigateTo } from '@devvit/web/client';
-import type { ArchiveEntry, ArchiveResponse, Stats } from '../../shared/api';
+import { navigateTo, showLoginPrompt } from '@devvit/web/client';
+import type { ArchiveEntry, ArchiveResponse, LeaderboardResponse, Stats } from '../../shared/api';
 import { Close } from '../icons';
 import { api, prettyDate } from '../util';
 
@@ -227,6 +227,95 @@ export function ShareSheet({ text, onClose }: { text: string; onClose: () => voi
         Copy this and paste it in the comments:
       </p>
       <textarea className="share-text" readOnly value={text} onFocus={(e) => e.currentTarget.select()} autoFocus />
+    </Sheet>
+  );
+}
+
+type BoardTab = 'today' | 'allTime';
+
+export function LeaderboardSheet({ onClose, loggedIn }: { onClose: () => void; loggedIn: boolean }) {
+  const [data, setData] = useState<LeaderboardResponse | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  const [tab, setTab] = useState<BoardTab>('today');
+  useEffect(() => {
+    api<LeaderboardResponse>('/leaderboard')
+      .then(setData)
+      .catch((e: unknown) => setError(e instanceof Error ? e.message : String(e)));
+  }, []);
+
+  const board = data?.[tab];
+  const meShown = board?.entries.some((e) => e.isMe) ?? false;
+  const unit = tab === 'today' ? 'pts' : 'total';
+
+  return (
+    <Sheet title="Leaderboard" onClose={onClose}>
+      <div className="tabs" role="tablist">
+        {(
+          [
+            ['today', 'Today'],
+            ['allTime', 'All time'],
+          ] as const
+        ).map(([key, label]) => (
+          <button
+            key={key}
+            type="button"
+            role="tab"
+            aria-selected={tab === key}
+            className={`tab${tab === key ? ' on' : ''}`}
+            onClick={() => setTab(key)}
+          >
+            {label}
+          </button>
+        ))}
+      </div>
+      <p className="hint" style={{ marginTop: 0, marginBottom: 12 }}>
+        {tab === 'today'
+          ? "Scores on today's puzzle."
+          : 'Total points from daily puzzles played on their day. Past puzzles and practice rounds don’t count.'}
+      </p>
+      {error && <p className="empty">{error}</p>}
+      {!data && !error && (
+        <div className="loading">
+          <div className="spinner" />
+        </div>
+      )}
+      {board && (
+        <div className="board-me">
+          {board.me ? (
+            <>
+              {meShown ? 'You are' : 'Your position:'} <b>#{board.me.rank.toLocaleString()}</b> of{' '}
+              {board.players.toLocaleString()} · <b>{board.me.points.toLocaleString()}</b> {unit}
+            </>
+          ) : !loggedIn ? (
+            <>
+              <button type="button" className="link-btn" onClick={() => showLoginPrompt()}>
+                Log in
+              </button>{' '}
+              to get on the leaderboard.
+            </>
+          ) : tab === 'today' ? (
+            "Play today's puzzle to get on the board."
+          ) : (
+            'Play a daily puzzle on its day to get on the board.'
+          )}
+        </div>
+      )}
+      {board && !board.entries.length && (
+        <p className="empty">{tab === 'today' ? 'Nobody has played today yet. Be the first!' : 'No scores yet.'}</p>
+      )}
+      {board && board.entries.length > 0 && (
+        <ol className="board">
+          {board.entries.map((e) => (
+            <li key={`${e.rank}-${e.username}`} className={e.isMe ? 'me' : ''}>
+              <span className={`pos p${e.rank}`}>{e.rank}</span>
+              <span className="who">u/{e.username}</span>
+              <span className="pts">
+                {e.points.toLocaleString()} <small>{unit}</small>
+              </span>
+            </li>
+          ))}
+        </ol>
+      )}
     </Sheet>
   );
 }
