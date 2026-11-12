@@ -175,7 +175,7 @@ export function App() {
     if (!data?.puzzle || !data.result) return;
     const sq = { exact: '🟩', close: '🟨', miss: '⬜' } as const;
     const lines = [
-      `Hiveminded #${data.puzzle.number}`,
+      `Hiveminded · ${prettyDate(data.puzzle.date)}`,
       `${data.result.marks.map((m) => sq[m]).join('')} ${data.result.points}/100`,
     ];
     if (data.isLatest && data.stats && data.stats.current > 1) lines.push(`🔥 ${data.stats.current} day streak`);
@@ -293,7 +293,7 @@ export function App() {
               </div>
             )}
             <div className="meta-row">
-              <span className="pill">{practice ? 'Practice' : `#${p.number} · ${prettyDate(p.date)}`}</span>
+              <span className="pill">{practice ? 'Practice' : prettyDate(p.date)}</span>
               <span className="right">
                 {/* Source picker turned off for now; uncomment to bring it back.
                 {data.isMod && !practice && (

@@ -205,7 +205,6 @@ export function ArchiveSheet({
                   className={`archive-item${e.date === currentDate ? ' current' : ''}`}
                   onClick={() => open(e)}
                 >
-                  <span className="num">#{e.number}</span>
                   <span className="info">
                     <b>{i === 0 ? 'Latest' : prettyDate(e.date, { weekday: 'short', month: 'short', day: 'numeric' })}</b>
                     <span>{e.points !== null ? `r/${e.subreddit}` : 'Not played yet'}</span>

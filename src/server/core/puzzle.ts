@@ -189,11 +189,11 @@ async function submitPuzzlePost(p: StoredPuzzle): Promise<string> {
   });
   const post = await reddit.submitCustomPost({
     subredditName: context.subredditName,
-    title: `Hiveminded #${p.number} (${pretty}): which comment got the most upvotes?`,
+    title: `Hiveminded (${pretty}): which comment got the most upvotes?`,
     entry: 'default',
     postData: { date: p.date, number: p.number },
     textFallback: {
-      text: `Daily puzzle #${p.number}: rank four comments from a popular post by upvotes. Open this post in the Reddit app or on new Reddit to play.`,
+      text: `Daily puzzle for ${pretty}: rank four comments from a popular post by upvotes. Open this post in the Reddit app or on new Reddit to play.`,
     },
   });
   return post.id;

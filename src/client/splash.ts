@@ -1,6 +1,6 @@
 import './base.css';
 import './splash.css';
-import { context, requestExpandedMode } from '@devvit/web/client';
+import { requestExpandedMode } from '@devvit/web/client';
 import type { InitResponse } from '../shared/api';
 
 const $ = (id: string) => document.getElementById(id);
@@ -9,9 +9,6 @@ function setText(id: string, text: string) {
   const el = $(id);
   if (el) el.textContent = text;
 }
-
-const postData = context.postData;
-if (postData && typeof postData.number === 'number') setText('badge', `#${postData.number}`);
 
 $('play')?.addEventListener('click', (e) => requestExpandedMode(e, 'game'));
 
@@ -25,7 +22,6 @@ async function load() {
       setText('question', "Today's puzzle is on its way.");
       return;
     }
-    setText('badge', `#${p.number}`);
     const media = $('media');
     if (media) {
       const img = document.createElement('img');
@@ -45,7 +41,7 @@ async function load() {
       setText('question', `You scored ${data.result.points} / 100`);
       setText('play', 'Guess which comments made it to the top');
     } else if (!data.isLatest) {
-      setText('play', `Play puzzle #${p.number}`);
+      setText('play', 'Play this puzzle');
     }
     const s = data.stats;
     if (s && s.current > 0) setText('sub', `🔥 ${s.current} day streak${s.playedLatest ? '' : ' · keep it going!'}`);

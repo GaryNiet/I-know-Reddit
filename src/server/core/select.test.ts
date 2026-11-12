@@ -58,10 +58,10 @@ test('commentCandidate filters junk', () => {
   assert.equal(commentCandidate(c('a', 'Edit: thanks for the award', 10)), null);
   assert.equal(commentCandidate(c('a', 'Hi', 10, { authorName: 'AutoModerator' })), null);
   assert.equal(commentCandidate(c('a', 'Short and sweet.', 10))?.body, 'Short and sweet.');
-  // Any number of sentences, up to 200 characters.
+  // Any number of sentences, up to 150 characters.
   assert.equal(commentCandidate(c('a', 'One. Two. Three. Four.', 10))?.body, 'One. Two. Three. Four.');
-  assert.equal(commentCandidate(c('a', 'x'.repeat(200), 10))?.body.length, 200);
-  assert.equal(commentCandidate(c('a', 'x'.repeat(201), 10)), null);
+  assert.equal(commentCandidate(c('a', 'x'.repeat(150), 10))?.body.length, 150);
+  assert.equal(commentCandidate(c('a', 'x'.repeat(151), 10)), null);
 });
 
 test('pickComments takes the top comments with clearly different scores', () => {

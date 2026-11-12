@@ -49,7 +49,7 @@ export const CONFIG = {
   /** ...and at least this many fewer points, so the order is guessable. */
   minScoreGap: 5,
   /** Longest comment allowed, in characters (after cleaning up markdown). */
-  maxCommentChars: 200,
+  maxCommentChars: 150,
   /** Image posts with a longer description need too much context to guess from. */
   maxPostBodyChars: 50,
 };

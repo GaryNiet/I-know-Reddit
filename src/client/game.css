@@ -202,7 +202,6 @@
   background: var(--surface-2); border: 2px solid transparent;
 }
 .archive-list .archive-item.current { border-color: var(--accent); }
-.archive-list .num { font-weight: 800; width: 44px; font-variant-numeric: tabular-nums; }
 .archive-list .info { flex: 1; min-width: 0; }
 .archive-list .info b { display: block; font-size: 15px; }
 .archive-list .info span { font-size: 12px; color: var(--muted); }
