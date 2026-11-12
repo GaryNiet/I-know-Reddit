@@ -212,10 +212,7 @@ async function readBoard(key: string, userId: string | undefined, limit: number)
   return { entries, me, players };
 }
 
-export async function getLeaderboards(userId: string | undefined, date: string | null, limit = 10) {
-  const [allTime, today] = await Promise.all([
-    readBoard(K.lbAll, userId, limit),
-    date ? readBoard(K.lbDay(date), userId, limit) : Promise.resolve<LeaderboardBoard>({ entries: [], me: null, players: 0 }),
-  ]);
-  return { allTime, today };
+/** The all-time board. (Per-day scores are only kept so a replaced puzzle's points can be taken back.) */
+export async function getLeaderboard(userId: string | undefined, limit = 10): Promise<LeaderboardBoard> {
+  return readBoard(K.lbAll, userId, limit);
 }

@@ -27,7 +27,7 @@ import {
   dateForPost,
   getCachedSubInfo,
   getCommunity,
-  getLeaderboards,
+  getLeaderboard,
   getPuzzle,
   getResults,
   getSeenSubreddits,
@@ -179,8 +179,7 @@ api.get('/leaderboard', async (c) => {
   const latest = dates[dates.length - 1] ?? null;
   const userId = context.userId;
   if (userId) await syncLeaderboard(userId, context.username, await getResults(userId), latest);
-  const boards = await getLeaderboards(userId, latest);
-  return c.json<LeaderboardResponse>({ type: 'leaderboard', date: latest, ...boards });
+  return c.json<LeaderboardResponse>({ type: 'leaderboard', allTime: await getLeaderboard(userId) });
 });
 
 api.get('/archive', async (c) => {

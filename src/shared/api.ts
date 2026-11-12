@@ -169,9 +169,6 @@ export type LeaderboardBoard = {
 
 export type LeaderboardResponse = {
   type: 'leaderboard';
-  /** Date of the puzzle the "today" board is for. */
-  date: string | null;
-  today: LeaderboardBoard;
   allTime: LeaderboardBoard;
 };
 

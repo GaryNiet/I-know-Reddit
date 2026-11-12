@@ -326,7 +326,7 @@ test('play again: a different post, nothing saved', async ({ headers }) => {
   vi.useRealTimers();
 });
 
-test('leaderboard: today and all time, with your position', async ({ headers }) => {
+test('leaderboard: all-time points, with your position', async ({ headers }) => {
   vi.useFakeTimers({ toFake: ['Date'] });
   vi.setSystemTime(new Date(`${TODAY}T00:05:00Z`));
   vi.mocked(source.fetchTopPosts).mockImplementation(async (sub) =>
@@ -352,12 +352,11 @@ test('leaderboard: today and all time, with your position', async ({ headers }) 
   await call(bob, '/api/submit', { method: 'POST', postId, body: { guess: ['t1_b', 't1_a', 't1_c', 't1_d'] } }); // 50
 
   const forBob = (await call<LeaderboardResponse>(bob, '/api/leaderboard')).body;
-  expect(forBob.date).toBe(TODAY);
-  expect(forBob.today.entries.map((e) => [e.rank, e.username, e.points, e.isMe])).toEqual([
+  expect(forBob.allTime.entries.map((e) => [e.rank, e.username, e.points, e.isMe])).toEqual([
     [1, 'alice', 100, false],
     [2, 'bob', 50, true],
   ]);
-  expect(forBob.today.me).toEqual({ rank: 2, points: 50 });
+  expect(forBob.allTime.me).toEqual({ rank: 2, points: 50 });
 
   // Carol's earlier play counts as soon as she shows up.
   const forCarol = (await call<LeaderboardResponse>(carol, '/api/leaderboard')).body;
@@ -367,7 +366,6 @@ test('leaderboard: today and all time, with your position', async ({ headers }) 
     ['bob', 50],
   ]);
   expect(forCarol.allTime.me).toEqual({ rank: 2, points: 70 });
-  expect(forCarol.today.me).toBeNull();
   expect(forCarol.allTime.players).toBe(3);
 
   // Practice rounds don't count.
@@ -376,21 +374,21 @@ test('leaderboard: today and all time, with your position', async ({ headers }) 
 
   // Logged out: the boards show, without a position.
   const anon = (await call<LeaderboardResponse>({ ...headers, 'devvit-user': undefined }, '/api/leaderboard')).body;
-  expect(anon.today.entries).toHaveLength(2);
-  expect(anon.today.me).toBeNull();
+  expect(anon.allTime.entries).toHaveLength(3);
+  expect(anon.allTime.me).toBeNull();
 
-  // Replacing today's puzzle takes its scores off both boards; playing the new one counts.
+  // Replacing today's puzzle takes its scores back off; playing the new one counts.
   asModerator(true);
   expect((await call(alice, '/api/regenerate', { method: 'POST' })).status).toBe(200);
   const cleared = (await call<LeaderboardResponse>(alice, '/api/leaderboard')).body;
-  expect(cleared.today.entries).toEqual([]);
+  expect(cleared.allTime.entries.map((e) => [e.username, e.points])[0]).toEqual(['carol', 70]);
   expect(cleared.allTime.entries.find((e) => e.username === 'alice')?.points).toBe(0);
+  expect(cleared.allTime.entries.find((e) => e.username === 'bob')?.points).toBe(0);
   const fresh = (await call<InitResponse>(alice, '/api/init', { postId })).body;
   const order = ['t1_nexta', 't1_nextb', 't1_nextc', 't1_nextd'];
   expect(fresh.puzzle?.comments.map((c) => c.id).sort()).toEqual(order);
   await call(alice, '/api/submit', { method: 'POST', postId, body: { guess: order } });
   const after = (await call<LeaderboardResponse>(alice, '/api/leaderboard')).body;
-  expect(after.today.me).toEqual({ rank: 1, points: 100 });
   expect(after.allTime.me).toEqual({ rank: 1, points: 100 });
   vi.useRealTimers();
 });
