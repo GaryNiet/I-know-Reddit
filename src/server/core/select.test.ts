@@ -94,11 +94,12 @@ test('extractImage: Reddit-hosted images and galleries only', () => {
       { url: 'https://preview.redd.it/two.jpg', width: 10, height: 10, valid: true },
     ],
   });
-  assert.deepEqual(extractImage(gallery), {
+  // Multi-picture posts are skipped; a gallery with a single picture is fine.
+  assert.equal(extractImage(gallery), null);
+  assert.deepEqual(extractImage({ ...gallery, gallery: gallery.gallery.slice(0, 1) }), {
     url: 'https://preview.redd.it/one.jpg?width=1080&s=1',
     width: 1080,
     height: 720,
-    gallery: 2,
   });
 });
 

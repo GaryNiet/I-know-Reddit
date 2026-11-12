@@ -31,7 +31,7 @@ About the autocomplete: Devvit's public API has no subreddit search, so suggesti
 ## How a puzzle is picked
 
 1. Fetch the top posts of the day from the source.
-2. Keep image posts hosted on Reddit (single images or galleries) that aren't NSFW, spoilers, removed, or already used. Posts whose description is over 50 characters are skipped too, since the image needs too much context.
+2. Keep single-image posts hosted on Reddit (multi-picture galleries are skipped) that aren't NSFW, spoilers, removed, or already used. Posts whose description is over 50 characters are skipped too, since the image needs too much context.
 3. For each candidate, load the top-level comments. Drop stickied, mod, bot, deleted, multi-line, link, quote and "Edit:" comments.
 4. Pick 4 comments of **up to 150 characters** each (any number of sentences). Each picked comment must have at most 90% of the score of the one above it (and at least 5 fewer points) so the order can be guessed. The minimum is 10 upvotes.
 5. If a post doesn't have enough suitable comments, move on to the next one.

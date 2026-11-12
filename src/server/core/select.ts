@@ -60,15 +60,12 @@ export const CONFIG = {
 const IMAGE_URL = /^https:\/\/(i|preview)\.redd\.it\/[^?#]+\.(jpe?g|png|gif|webp)(\?.*)?$/i;
 
 export function extractImage(post: RawPost) {
+  // Multi-picture posts are skipped: the comments may be about any of the pictures.
+  if (post.gallery.length > 1) return null;
   const first = post.gallery[0];
   if (first) {
     if (!first.valid || !IMAGE_URL.test(first.url)) return null;
-    return {
-      url: first.url,
-      width: first.width || undefined,
-      height: first.height || undefined,
-      gallery: post.gallery.length,
-    };
+    return { url: first.url, width: first.width || undefined, height: first.height || undefined };
   }
   if (!IMAGE_URL.test(post.url)) return null;
   // The thumbnail has the same aspect ratio as the image; good enough for layout.
