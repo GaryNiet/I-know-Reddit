@@ -5,6 +5,7 @@ import {
   commentCandidate,
   extractImage,
   isEligiblePost,
+  looksTextBased,
   normalizeSubredditName,
   pickComments,
   seededShuffle,
@@ -135,3 +136,29 @@ test('normalizeSubredditName', () => {
   assert.equal(normalizeSubredditName('no spaces allowed'), null);
   assert.equal(normalizeSubredditName('x'), null);
 });
+
+test('looksTextBased: subreddit, flair and title hints', () => {
+  const photo = post({ title: 'My grandpa built this treehouse', subredditName: 'pics' });
+  assert.equal(looksTextBased(photo), false);
+  // Screenshot-heavy subreddits, unless a moderator picked them.
+  assert.equal(looksTextBased({ ...photo, subredditName: 'WhitePeopleTwitter' }), true);
+  assert.equal(looksTextBased({ ...photo, subredditName: 'WhitePeopleTwitter' }, { checkSubreddit: false }), false);
+  // Flairs.
+  assert.equal(looksTextBased({ ...photo, flair: 'Screenshot' }), true);
+  assert.equal(looksTextBased({ ...photo, flair: 'Meme' }), true);
+  assert.equal(looksTextBased({ ...photo, flair: 'OC' }), false);
+  assert.equal(looksTextBased({ ...photo, flair: 'Contextless' }), false); // "text" only as a whole word
+  // Titles.
+  assert.equal(looksTextBased({ ...photo, title: 'This tweet aged badly' }), true);
+  assert.equal(looksTextBased({ ...photo, title: 'My mom texted me this' }), true);
+  assert.equal(looksTextBased({ ...photo, title: 'My mom made this quilt' }), false);
+  assert.equal(looksTextBased({ ...photo, title: 'Got this text from my landlord' }), true);
+  assert.equal(looksTextBased({ ...photo, title: 'Read the fine print' }), true);
+  assert.equal(looksTextBased({ ...photo, title: 'Found this sign at the beach' }), true);
+  assert.equal(looksTextBased({ ...photo, title: 'Textured wall in my new flat' }), false);
+  // And they're excluded from puzzles.
+  const opts = { usedIds: new Set<string>(), minComments: 1 };
+  assert.equal(isEligiblePost({ ...photo, flair: 'Screenshot' }, opts), false);
+  assert.equal(isEligiblePost({ ...photo, subredditName: 'memes' }, { ...opts, checkTextSubreddits: false }), true);
+});
+

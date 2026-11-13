@@ -78,12 +78,12 @@ async function candidatesFromSubreddits(
     try {
       let posts = await fetchTopPosts(sub, 'day', 50);
       fetched += posts.length;
-      let eligible = posts.filter((p) => isEligiblePost(p, { usedIds: used, minComments: 15 }));
+      let eligible = posts.filter((p) => isEligiblePost(p, { usedIds: used, minComments: 15, checkTextSubreddits: false }));
       if (!eligible.length) {
         // Quieter subreddits may not have a good image post every day.
         posts = await fetchTopPosts(sub, 'week', 50);
         fetched += posts.length;
-        eligible = posts.filter((p) => isEligiblePost(p, { usedIds: used, minComments: 15 }));
+        eligible = posts.filter((p) => isEligiblePost(p, { usedIds: used, minComments: 15, checkTextSubreddits: false }));
       }
       return eligible.sort((a, b) => b.score - a.score);
     } catch (err) {

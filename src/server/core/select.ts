@@ -7,6 +7,8 @@ export type RawPost = {
   title: string;
   /** Text the poster wrote with the image, if any. */
   body?: string | undefined;
+  /** The post's flair text, if any. */
+  flair?: string | undefined;
   subredditName: string;
   authorName: string;
   score: number;
@@ -77,11 +79,65 @@ export function extractImage(post: RawPost) {
   };
 }
 
+// ------------------------------------------------------------ text-based images
+// Screenshots of tweets, texts and memes make poor puzzles: the comments react
+// to the words, not the picture. There's no reliable signal for "this image is
+// mostly text", so these are cheap guesses from the subreddit, flair and title.
+
+/** Subreddits that are mostly screenshots or text memes (lowercase). */
+export const TEXT_HEAVY_SUBREDDITS = new Set(
+  [
+    'clevercomebacks', 'murderedbywords', 'facepalm', 'whitepeopletwitter', 'blackpeopletwitter',
+    'linkedinlunatics', 'tumblr', 'choosingbeggars', 'insanepeoplefacebook', 'explainthejoke',
+    'comics', 'memes', 'me_irl', 'meirl', 'me_irlgbt', '2meirl4meirl', 'dankmemes', 'memesopdidnotlike',
+    'antimeme', '196', 'onejoke', 'rareinsults', 'iamverysmart', 'confidentlyincorrect',
+    'screenshotsarehilarious', 'texts', 'tinder', 'boneappletea', 'brandnewsentence', 'nottheonion',
+    'technicallythetruth', 'suspiciouslyspecific', 'shitamericanssay', 'shitposting', 'greentext',
+    'antiwork', 'workreform', 'leopardsatemyface', 'agedlikemilk', 'agedlikewine', 'quityourbullshit',
+    'twitter', 'sadcringe', 'cringetopia', 'oldpeoplefacebook', 'boomershumor',
+    'terriblefacebookmemes', 'programmerhumor', 'whenthe', 'prequelmemes', 'historymemes', 'adviceanimals',
+    'okbuddycinephile', 'curatedtumblr',
+  ].map((s) => s.toLowerCase())
+);
+
+/** Flairs that mark a screenshot, meme or other text post. */
+const TEXT_FLAIR =
+  /\b(screenshots?|screen ?caps?|memes?|tweets?|twitter|x post|texts?|texting|chats?|conversations?|comics?|tumblr|quotes?|headlines?|articles?|news|reddit posts?|facebook|linkedin|dms?)\b/i;
+
+/** Titles that point at the words in the image rather than the picture. */
+const TEXT_TITLE = new RegExp(
+  [
+    'tweets?', 'tweeted', 'screenshots?', 'tumblr', 'linkedin', 'facebook post', 'reddit post',
+    'this (text|comment|post|thread|reply|message|email|e-mail|letter|note|sign|headline|article|review|caption|exchange|conversation)',
+    'texts? (from|with)', '(texted|messaged|dmed) me', 'group ?chat', 'read (this|that|the)', 'the (caption|wording|fine print)',
+  ]
+    .map((p) => `\\b${p}\\b`)
+    .join('|'),
+  'i'
+);
+
+/**
+ * Whether a post is probably a text-based image. The subreddit check can be
+ * turned off for subreddits a moderator chose on purpose.
+ */
+export function looksTextBased(post: RawPost, opts: { checkSubreddit?: boolean } = {}): boolean {
+  if ((opts.checkSubreddit ?? true) && TEXT_HEAVY_SUBREDDITS.has(post.subredditName.toLowerCase())) return true;
+  if (post.flair && TEXT_FLAIR.test(post.flair)) return true;
+  return TEXT_TITLE.test(post.title);
+}
+
 export function isEligiblePost(
   post: RawPost,
-  opts: { usedIds: ReadonlySet<string>; minComments: number; window?: [number, number] }
+  opts: {
+    usedIds: ReadonlySet<string>;
+    minComments: number;
+    window?: [number, number];
+    /** False for subreddits a moderator picked, so their choice isn't overridden. */
+    checkTextSubreddits?: boolean;
+  }
 ): boolean {
   if (post.nsfw || post.spoiler || post.stickied || post.removed || post.quarantined) return false;
+  if (looksTextBased(post, { checkSubreddit: opts.checkTextSubreddits ?? true })) return false;
   if (opts.usedIds.has(post.id)) return false;
   if (post.numComments < opts.minComments) return false;
   if (cleanBody(post.body ?? '').length > CONFIG.maxPostBodyChars) return false;
